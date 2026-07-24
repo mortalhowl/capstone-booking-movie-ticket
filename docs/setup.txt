@@ -1,0 +1,38 @@
+npm install tailwindcss @tailwindcss/vite axios react-router-dom @reduxjs/toolkit react-redux dayjs swiper
+
+mkdir -p src/components src/components/layouts src/components/layouts/clientLayout src/components/layouts/adminLayout src/pages src/features src/services src/store src/router src/untils
+touch 
+
+
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath, URL } from "node:url";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
+});
+
+
+
+@import "tailwindcss";
+
+
+
+- setup alias: jsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src"]
+}
