@@ -10,4 +10,6 @@ api.interceptors.request.use((config) => {
     Authorization: {},
     TokenCybersoft: import.meta.env.VITE_TOKEN_CYBERSOFT,
   };
+
+  return config;
 });

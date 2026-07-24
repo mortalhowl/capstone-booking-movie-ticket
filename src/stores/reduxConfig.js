@@ -1,5 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
 
+import { bannerReducer } from "@/features/banner";
+
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    banner: bannerReducer,
+  },
 });
