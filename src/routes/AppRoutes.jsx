@@ -19,7 +19,7 @@ export const router = createBrowserRouter([
         element: <TestPage />,
       },
       {
-        path: "/test/search",
+        path: "/test/movie",
         element: <TestSearchPage />,
       },
     ],
