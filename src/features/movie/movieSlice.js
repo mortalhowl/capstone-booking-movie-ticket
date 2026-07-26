@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { movieApi } from "./movieApi";
+import { movieApi, movieDetailApi } from "./movieApi";
 
 export const getMovies = createAsyncThunk(
   "movie/getMovies",
@@ -25,6 +25,18 @@ export const searchMovies = createAsyncThunk(
   },
 );
 
+export const getMovieDetail = createAsyncThunk(
+  "movie/getMovieDetail",
+  async (params, thunkAPI) => {
+    try {
+      const { data } = await movieDetailApi(params);
+      return data.content;
+    } catch (error) {
+      thunkAPI.rejectWithValue(error);
+    }
+  },
+);
+
 const initialState = {
   data: [],
   loading: false,
@@ -33,6 +45,10 @@ const initialState = {
   searchResults: [],
   searchLoading: false,
   searchError: null,
+
+  movieDetail: {},
+  movieDetailLoading: false,
+  movieDetailError: null,
 };
 
 const movieSlice = createSlice({
@@ -65,6 +81,19 @@ const movieSlice = createSlice({
       .addCase(searchMovies.rejected, (state, action) => {
         state.searchLoading = false;
         state.searchError = action.payload;
+      })
+
+      .addCase(getMovieDetail.pending, (state) => {
+        state.movieDetailLoading = true;
+        state.movieDetailError = null;
+      })
+      .addCase(getMovieDetail.fulfilled, (state, action) => {
+        state.movieDetailLoading = false;
+        state.movieDetail = action.payload;
+      })
+      .addCase(getMovieDetail.rejected, (state, action) => {
+        state.movieDetailLoading = false;
+        state.movieDetailError = action.payload;
       });
   },
 });

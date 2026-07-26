@@ -11,3 +11,13 @@ export const movieApi = (params = {}) => {
     params: queryParams,
   });
 };
+
+export const movieDetailApi = (params = {}) => {
+  const queryParams = {
+    maPhim: params.maPhim,
+  };
+
+  return api.get("QuanLyPhim/LayThongTinPhim", {
+    params: queryParams,
+  });
+};
