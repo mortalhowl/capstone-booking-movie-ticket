@@ -1,7 +1,9 @@
 import useBanner from "@/features/banner/hooks/useBanner";
 import useMovies from "@/features/movie/hooks/useMovies";
 import HeroBanner from "@/features/banner";
+import MovieList from "@/features/movie/components/MovieList";
 import { useMemo, useState } from "react";
+import MovieSearch from "@/features/movie/components/MovieSearch";
 
 export default function TestPage() {
   const {
@@ -9,6 +11,7 @@ export default function TestPage() {
     loading: loadingBanner,
     error: bannerError,
   } = useBanner();
+
   const bannerData = useMemo(() => {
     if (banners.length > 0 && banners.length < 6) {
       return [...banners, ...banners, ...banners];
@@ -16,26 +19,26 @@ export default function TestPage() {
     return banners;
   }, [banners]);
 
-  const { upcomingMovies, nowPlaying, loading, error, fetchMovies } =
-    useMovies();
-  console.log(upcomingMovies, nowPlaying);
+  const {
+    upcomingMovies,
+    nowPlaying,
+    loading: loadingMovie,
+    error: errorMovie,
+    fetchMovies,
+  } = useMovies();
 
-  const [search, setSearch] = useState({
-    tenPhim: "",
-  });
+  const [activeMovieTab, setActiveMovieTab] = useState("nowPlaying");
+  const [viewMore, setViewMore] = useState(false);
 
-  const handleChange = (e) => {
-    const value = e.target.value;
-    // console.log(value);
-    setSearch({
-      tenPhim: value,
-    });
-  };
+  const filteredMovies =
+    activeMovieTab === "nowPlaying"
+      ? viewMore
+        ? nowPlaying
+        : nowPlaying.slice(0, 10)
+      : viewMore
+        ? upcomingMovies
+        : upcomingMovies.slice(0, 10);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    fetchMovies(search);
-  };
   return (
     <div>
       <HeroBanner
@@ -44,14 +47,39 @@ export default function TestPage() {
         error={bannerError}
       />
 
-      <form onSubmit={handleSubmit}>
-        <input
-          onChange={handleChange}
-          type="text"
-          className="border border-gray-500"
+      <MovieSearch />
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        <div className="flex items-center justify-center gap-8 border-b border-gray-200 mb-8">
+          <button
+            onClick={() => setActiveMovieTab("nowPlaying")}
+            className={`pb-3 px-2 text-xl font-bold transition-colors border-b-4 ${activeMovieTab === "nowPlaying" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-400 hover:text-gray-800"}`}
+          >
+            Đang Chiếu
+          </button>
+          <button
+            onClick={() => setActiveMovieTab("upcomingMovies")}
+            className={`pb-3 px-2 text-xl font-bold transition-colors border-b-4 ${activeMovieTab === "upcomingMovies" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-400 hover:text-gray-800"}`}
+          >
+            Sắp Chiếu
+          </button>
+        </div>
+        <MovieList
+          data={filteredMovies}
+          loading={loadingMovie}
+          error={errorMovie}
         />
-        <button type="submit">search</button>
-      </form>
+        {!viewMore && (
+          <div className="mt-5 flex flex-col justify-center items-center">
+            <button
+              onClick={() => setViewMore(true)}
+              className="px-3 py-2 text-blue-500 bg-white border border-blue-500 rounded-lg cursor-pointer"
+            >
+              Xem thêm
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
