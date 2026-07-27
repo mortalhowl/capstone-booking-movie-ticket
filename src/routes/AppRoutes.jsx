@@ -4,6 +4,7 @@ import ClientLayout from "@/layouts/ClientLayout/ClientLayout";
 import TestPage from "@/pages/TestPage";
 import TestSearchPage from "@/pages/TestSearchPage";
 import TestMovieDetailPage from "@/pages/TestMovieDetailPage";
+import TestApi from "@/pages/TestApi";
 import HomePage from "@/pages/HomePage";
 
 export const router = createBrowserRouter([
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
       {
         path: "/movie/:maPhim",
         element: <TestMovieDetailPage />,
+      },
+      {
+        path: "/test/api",
+        element: <TestApi />,
       },
     ],
   },
