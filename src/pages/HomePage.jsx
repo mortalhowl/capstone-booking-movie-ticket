@@ -1,11 +1,5 @@
-import { logoutUser } from "@/features/auth";
-import { useDispatch } from "react-redux";
+import React from "react";
+
 export default function HomePage() {
-  const dispatch = useDispatch();
-  return (
-    <div>
-      HomePage
-      <button onClick={() => dispatch(logoutUser())}>logout</button>
-    </div>
-  );
+  return <div>HomePage</div>;
 }

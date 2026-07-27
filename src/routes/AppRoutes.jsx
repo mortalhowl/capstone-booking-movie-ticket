@@ -5,6 +5,8 @@ import TestPage from "@/pages/TestPage";
 import TestSearchPage from "@/pages/TestSearchPage";
 import TestMovieDetailPage from "@/pages/TestMovieDetailPage";
 import TestApi from "@/pages/TestApi";
+import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 import HomePage from "@/pages/HomePage";
 
 export const router = createBrowserRouter([
@@ -15,6 +17,14 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "/auth/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "/auth/register",
+        element: <RegisterPage />,
       },
       {
         path: "/test",
