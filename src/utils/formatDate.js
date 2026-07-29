@@ -1,9 +1,33 @@
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-export const formatDate = (date, withTime = false) => {
+export const formatDate = (date, formatType = "date") => {
   if (!date || !dayjs(date).isValid()) return "";
 
-  const formatString = withTime ? "DD/MM/YYYY HH:mm:ss" : "DD/MM/YYYY";
+  const d = dayjs(date);
 
-  return dayjs(date).format(formatString);
+  const formats = {
+    date: "DD/MM/YYYY",
+    datetime: "DD/MM/YYYY HH:mm:ss",
+    datetimeShort: "DD/MM/YYYY HH:mm",
+    time: "HH:mm:ss",
+    timeShort: "HH:mm",
+
+    iso: "YYYY-MM-DD",
+    isoDateTime: "YYYY-MM-DD HH:mm:ss",
+    us: "MM/DD/YYYY",
+
+    full: "dddd, D MMMM YYYY",
+    monthYear: "MM/YYYY",
+    yearOnly: "YYYY",
+  };
+
+  const formatString = formats[formatType] || formatType;
+
+  return d.format(formatString);
 };
+
+export const now = dayjs().tz("Asia/Ho_Chi_Minh");
