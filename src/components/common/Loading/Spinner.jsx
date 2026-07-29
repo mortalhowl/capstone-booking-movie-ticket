@@ -1,4 +1,4 @@
-export default function Spinner({ size = "md", className = "" }) {
+export default function Spinner({ size = "md", label = "", className = "" }) {
   const sizes = {
     sm: "w-4 h-4 border-2",
     md: "w-8 h-8 border-4",
@@ -6,10 +6,13 @@ export default function Spinner({ size = "md", className = "" }) {
   };
 
   return (
-    <div className={`flex justify-center items-center ${className}`}>
+    <div
+      className={`flex flex-col justify-center items-center py-20 ${className}`}
+    >
       <div
         className={`${sizes[size]} border-gray-300 border-t-blue-600 rounded-full animate-spin`}
       ></div>
+      {label && <span className="mt-3 text-gray-500 font-medium">{label}</span>}
     </div>
   );
 }
