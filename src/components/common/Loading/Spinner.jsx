@@ -6,9 +6,7 @@ export default function Spinner({ size = "md", label = "", className = "" }) {
   };
 
   return (
-    <div
-      className={`flex flex-col justify-center items-center py-20 ${className}`}
-    >
+    <div className={`flex flex-col justify-center items-center ${className}`}>
       <div
         className={`${sizes[size]} border-gray-300 border-t-blue-600 rounded-full animate-spin`}
       ></div>

@@ -68,12 +68,16 @@ export default function useAuth() {
     }
   };
 
+  const isAuthenticated = Boolean(data && data.accessToken);
+
   return {
+    isAuthenticated,
     handleLogin,
     handleLogout,
     handleRegister,
     handleGetProfile,
     handleUpdateProfile,
+    data,
     userInfo,
     loading,
     error,
