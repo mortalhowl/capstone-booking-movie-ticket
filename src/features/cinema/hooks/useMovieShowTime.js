@@ -1,4 +1,5 @@
-import { useEffect, useParams } from "react";
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { getMovieShowTime } from "../cinemaSlice";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -8,8 +9,8 @@ export default function useMovieShowTime() {
   const { showTime, loading, error } = useSelector((state) => state.cinema);
 
   useEffect(() => {
-    if (!showTime || showTime.length === 0) dispatch(getMovieShowTime(maPhim));
-  }, [dispatch, showTime, maPhim]);
+    dispatch(getMovieShowTime(maPhim));
+  }, [dispatch, maPhim]);
 
   return {
     showTime,
