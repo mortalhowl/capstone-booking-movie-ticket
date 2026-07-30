@@ -93,7 +93,7 @@
 //         Cụm Rạp & Lịch Chiếu
 //       </h2>
 
-//       <div className=" border-x border-t border-gray-200 rounded-t-lg shadow-md">
+//       {/* <div className=" border-x border-t border-gray-200 rounded-t-lg shadow-md">
 //         <div className="flex overflow-x-auto no-scrollbar p-2 gap-2">
 //           {dateTabs.map((tab) => (
 //             <button
@@ -114,7 +114,7 @@
 //             </button>
 //           ))}
 //         </div>
-//       </div>
+//       </div> */}
 
 //       <div className="flex flex-col md:flex-row border border-gray-200 rounded-b-lg overflow-hidden bg-white shadow-sm">
 //         <div className="w-full md:w-24 lg:w-32 flex md:flex-col overflow-x-auto no-scrollbar border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50">
@@ -203,7 +203,6 @@
 //     </div>
 //   );
 // }
-
 import React from "react";
 
 export default function TestApi() {

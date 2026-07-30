@@ -5,13 +5,9 @@ import { now } from "@/utils/formatDate";
 import { scrollToTop } from "@/utils/scrollToTop";
 import DateTabs from "./DateTabs";
 import SystemSidebar from "./SystemSidebar";
-import CinemaBranchList from "./CinemaBranchList";
+import DetailBranchList from "./DetailBranchList";
 
-export default function CinemaSystemSchedule({
-  systemSchedule,
-  loading,
-  error,
-}) {
+export default function CinemaScheduleList({ movieSchedule, loading, error }) {
   const [selectedSystem, setSelectedSystem] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -33,23 +29,22 @@ export default function CinemaSystemSchedule({
     return tabs;
   }, []);
 
+  const heThongRapChieu = movieSchedule?.heThongRapChieu || [];
+
   const activeSystem =
     selectedSystem ||
-    (systemSchedule && systemSchedule.length > 0
-      ? systemSchedule[0].maHeThongRap
-      : null);
-
-  const currentSystemData = systemSchedule?.find(
-    (system) => system.maHeThongRap === activeSystem,
-  );
-
-  const danhSachCumRap = currentSystemData?.lstCumRap || [];
+    (heThongRapChieu.length > 0 ? heThongRapChieu[0].maHeThongRap : null);
 
   const activeDate = selectedDate || dateTabs[0].id;
 
+  const currentSystemData = heThongRapChieu.find(
+    (system) => system.maHeThongRap === activeSystem,
+  );
+  const danhSachCumRap = currentSystemData?.cumRapChieu || [];
+
   const handleSelectSystem = (maHeThongRap) => {
     setSelectedSystem(maHeThongRap);
-    setSelectedDate(null);
+    // setSelectedDate(null);
     scrollToTop(rightColumnRef.current);
   };
 
@@ -61,53 +56,49 @@ export default function CinemaSystemSchedule({
   const filteredCumRap = danhSachCumRap
     .map((cumRap) => ({
       ...cumRap,
-      danhSachPhim: cumRap.danhSachPhim
-        ?.map((phim) => ({
-          ...phim,
-          lstLichChieuTheoPhim: phim.lstLichChieuTheoPhim?.filter((suat) => {
-            if (!activeDate) return true;
-            return (
-              suat.ngayChieuGioChieu &&
-              suat.ngayChieuGioChieu.startsWith(activeDate)
-            );
-          }),
-        }))
-        .filter(
-          (phim) =>
-            // phim.maPhim === 15526 &&
-            phim.lstLichChieuTheoPhim && phim.lstLichChieuTheoPhim.length > 0,
-        ),
+      lichChieuPhim: cumRap.lichChieuPhim?.filter((suat) => {
+        if (!activeDate) return;
+        return (
+          suat.ngayChieuGioChieu &&
+          suat.ngayChieuGioChieu.startsWith(activeDate)
+        );
+      }),
     }))
-    .filter((cumRap) => cumRap.danhSachPhim && cumRap.danhSachPhim.length > 0);
+    .filter(
+      (cumRap) => cumRap.lichChieuPhim && cumRap.lichChieuPhim.length > 0,
+    );
+
+  console.log(filteredCumRap);
 
   if (loading)
     return (
       <Spinner
         size="lg"
-        label="Đang tải..."
+        label="Đang tải lịch chiếu..."
         className="h-[30vh] md:h-[50vh] lg:h-[70vh]"
       />
     );
 
-  if (error) return <EmptyState message="Lỗi tải dữ liệu" />;
+  if (error) return <EmptyState message="Lỗi tải dữ liệu lịch chiếu" />;
 
-  if (!systemSchedule || systemSchedule.length === 0) return null;
+  if (!heThongRapChieu || heThongRapChieu.length === 0)
+    return <EmptyState message="Phim này hiện chưa có lịch chiếu" />;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h2 className="text-2xl font-bold text-center mb-8 uppercase tracking-wide">
-        Cụm Rạp & Lịch Chiếu
+        Lịch Chiếu Phim
       </h2>
 
       <DateTabs
         dateTabs={dateTabs}
-        selectedDate={selectedDate}
+        selectedDate={activeDate}
         onSelectDate={handleSelectDate}
       />
 
       <div className="flex flex-col md:flex-row border border-gray-200 rounded-b-lg overflow-hidden bg-white shadow-sm">
         <SystemSidebar
-          systemSchedule={systemSchedule}
+          systemSchedule={heThongRapChieu}
           onSelectSystem={handleSelectSystem}
           activeSystem={activeSystem}
         />
@@ -116,7 +107,7 @@ export default function CinemaSystemSchedule({
           ref={rightColumnRef}
           className="flex-1 max-h-150 overflow-y-auto p-4 md:p-6 custom-scrollbar"
         >
-          <CinemaBranchList
+          <DetailBranchList
             filteredCumRap={filteredCumRap}
             currentSystemData={currentSystemData}
           />
