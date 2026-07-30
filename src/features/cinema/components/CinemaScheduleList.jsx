@@ -57,7 +57,7 @@ export default function CinemaScheduleList({ movieSchedule, loading, error }) {
     .map((cumRap) => ({
       ...cumRap,
       lichChieuPhim: cumRap.lichChieuPhim?.filter((suat) => {
-        if (!activeDate) return;
+        if (!activeDate) return true;
         return (
           suat.ngayChieuGioChieu &&
           suat.ngayChieuGioChieu.startsWith(activeDate)
@@ -67,8 +67,6 @@ export default function CinemaScheduleList({ movieSchedule, loading, error }) {
     .filter(
       (cumRap) => cumRap.lichChieuPhim && cumRap.lichChieuPhim.length > 0,
     );
-
-  console.log(filteredCumRap);
 
   if (loading)
     return (

@@ -6,6 +6,7 @@ import NotFoundPage from "@/pages/NotFoundPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import HomePage from "@/pages/HomePage";
+import MovieDetailPage from "@/pages/MovieDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "movie/:maPhim",
+        element: <MovieDetailPage />,
       },
     ],
   },
