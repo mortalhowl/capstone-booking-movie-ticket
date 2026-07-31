@@ -5,11 +5,17 @@ export const api = axios.create({
   timeout: 50000,
 });
 
-api.interceptors.request.use((config) => {
-  config.headers = {
-    Authorization: {},
-    TokenCybersoft: import.meta.env.VITE_TOKEN_CYBERSOFT,
-  };
+api.interceptors.request.use(
+  (config) => {
+    const userData = JSON.parse(localStorage.getItem("USER_DATA"));
+    if (userData && userData.accessToken) {
+      config.headers.Authorization = `Bearer ${userData.accessToken}`;
+    }
+    config.headers.TokenCybersoft = import.meta.env.VITE_TOKEN_CYBERSOFT;
 
-  return config;
-});
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);

@@ -15,15 +15,15 @@ export default function useAuth() {
   const navigate = useNavigate();
   const { data, userInfo, loading, error } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (data && data.accessToken) {
-      if (data.maLoaiNguoiDung === "QuanTri") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/");
-      }
-    }
-  }, [data, error, navigate]);
+  // useEffect(() => {
+  //   if (data && data.accessToken) {
+  //     if (data.maLoaiNguoiDung === "QuanTri") {
+  //       navigate("/admin/dashboard");
+  //     } else {
+  //       navigate("/");
+  //     }
+  //   }
+  // }, [data, error, navigate]);
 
   const handleLogin = async (body) => {
     try {
