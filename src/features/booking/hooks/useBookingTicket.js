@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { postBookingTicket } from "../bookingSlice";
 import { toast } from "react-toastify";
 
-export default function useTicketRoom() {
+export default function useBookingTicket() {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.booking);
 

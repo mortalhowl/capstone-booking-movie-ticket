@@ -12,9 +12,13 @@ export default function useTicketRoom() {
     dispatch(getTicketRoom(maLichChieu));
   }, [dispatch, maLichChieu]);
 
+  const refetch = () => {
+    dispatch(getTicketRoom(maLichChieu));
+  };
   return {
     data,
     loading,
     error,
+    refetch,
   };
 }
