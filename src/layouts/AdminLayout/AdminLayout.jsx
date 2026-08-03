@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, Navigate, useNavigate } from "react-router-dom";
 import {
   Film,
   Calendar,
@@ -16,6 +16,26 @@ import {
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Kiểm tra thông tin người dùng đăng nhập trong localStorage
+  const currentUser = localStorage.getItem("USER_ADMIN")
+    ? JSON.parse(localStorage.getItem("USER_ADMIN"))
+    : localStorage.getItem("USER_DATA")
+    ? JSON.parse(localStorage.getItem("USER_DATA"))
+    : null;
+
+  // BẢO VỆ ROUTE ADMIN: Nếu chưa đăng nhập hoặc không phải Quản Trị Viên -> Đẩy về trang Login
+  if (!currentUser || currentUser.maLoaiNguoiDung !== "QuanTri") {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  // Xử lý đăng xuất tài khoản Admin
+  const handleLogout = () => {
+    localStorage.removeItem("USER_ADMIN");
+    localStorage.removeItem("USER_DATA");
+    navigate("/auth/login");
+  };
 
   const navItems = [
     {
@@ -104,18 +124,19 @@ export default function AdminLayout() {
         {/* User Footer Profile */}
         <div className="p-4 border-t border-slate-800/80">
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-            <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-semibold text-sm">
-                AD
+            <div className="flex items-center space-x-3 overflow-hidden">
+              <div className="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-semibold text-sm flex-shrink-0">
+                {(currentUser?.hoTen || currentUser?.taiKhoan || "AD").slice(0, 2).toUpperCase()}
               </div>
-              <div className="text-xs">
-                <p className="font-semibold text-slate-200">Quản Trị Viên</p>
-                <p className="text-slate-400">admin@cybersoft.vn</p>
+              <div className="text-xs truncate">
+                <p className="font-semibold text-slate-200 truncate">{currentUser?.hoTen || currentUser?.taiKhoan || "Quản Trị Viên"}</p>
+                <p className="text-slate-400 truncate">{currentUser?.email || currentUser?.taiKhoan || "Admin"}</p>
               </div>
             </div>
             <button
+              onClick={handleLogout}
               title="Đăng xuất"
-              className="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+              className="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors flex-shrink-0"
             >
               <LogOut className="w-4 h-4" />
             </button>
