@@ -24,6 +24,11 @@ export default function AdminLayout() {
       icon: Film,
     },
     {
+      title: "Quản Lý Người Dùng",
+      path: "/admin/users",
+      icon: Users,
+    },
+    {
       title: "Tạo Lịch Chiếu",
       path: "/admin/showtime",
       icon: Calendar,

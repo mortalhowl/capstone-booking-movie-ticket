@@ -18,7 +18,7 @@ export default function useAuth() {
   useEffect(() => {
     if (data && data.accessToken) {
       if (data.maLoaiNguoiDung === "QuanTri") {
-        navigate("/admin/dashboard");
+        navigate("/admin/movies");
       } else {
         navigate("/");
       }
@@ -30,7 +30,7 @@ export default function useAuth() {
       await dispatch(loginServices(body)).unwrap();
       toast.success("Đăng nhập thành công!");
       if (data.maLoaiNguoiDung === "QuanTri") {
-        navigate("/admin/dashboard");
+        navigate("/admin/movies");
       } else {
         navigate("/");
       }

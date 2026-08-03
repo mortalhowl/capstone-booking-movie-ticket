@@ -16,9 +16,11 @@ const api = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
-    // Lấy thông tin user admin đăng nhập từ localStorage
+    // Lấy thông tin user admin đăng nhập từ localStorage (hỗ trợ cả USER_ADMIN và USER_DATA)
     const userAdmin = localStorage.getItem("USER_ADMIN")
       ? JSON.parse(localStorage.getItem("USER_ADMIN"))
+      : localStorage.getItem("USER_DATA")
+      ? JSON.parse(localStorage.getItem("USER_DATA"))
       : null;
 
     const accessToken = userAdmin?.accessToken || "";

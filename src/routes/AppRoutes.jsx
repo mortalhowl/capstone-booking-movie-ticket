@@ -13,6 +13,7 @@ import HomePage from "@/pages/HomePage";
 
 import AdminMoviePage from "@/pages/AdminMoviePage";
 import AdminShowtimePage from "@/pages/AdminShowtimePage";
+import AdminUserPage from "@/pages/AdminUserPage";
 
 export const router = createBrowserRouter([
   {
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
       {
         path: "movies",
         element: <AdminMoviePage />,
+      },
+      {
+        path: "users",
+        element: <AdminUserPage />,
       },
       {
         path: "showtime",
