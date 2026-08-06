@@ -27,6 +27,8 @@ export default function MovieFormModal({
 
   // Sync initialData khi Edit hoặc Reset khi Thêm mới
   useEffect(() => {
+    const today = dayjs().startOf("day");
+
     if (initialData) {
       // Chuyển đổi ngày về dạng YYYY-MM-DD để thẻ <input type="date"> hiển thị chuẩn
       let formattedDateStr = "";
@@ -37,13 +39,16 @@ export default function MovieFormModal({
         }
       }
 
+      // Tự động tính: Nếu ngày khởi chiếu ở tương lai -> Sắp chiếu, ngược lại -> Đang chiếu
+      const isFuture = formattedDateStr ? dayjs(formattedDateStr).startOf("day").isAfter(today) : false;
+
       setFormData({
         tenPhim: initialData.tenPhim || "",
         trailer: initialData.trailer || "",
         moTa: initialData.moTa || "",
         ngayKhoiChieu: formattedDateStr,
-        dangChieu: initialData.dangChieu ?? true,
-        sapChieu: initialData.sapChieu ?? false,
+        dangChieu: !isFuture,
+        sapChieu: isFuture,
         hot: initialData.hot ?? false,
         danhGia: initialData.danhGia || 8,
         hinhAnh: initialData.hinhAnh || "",
@@ -51,12 +56,13 @@ export default function MovieFormModal({
       });
       setPreviewImage(initialData.hinhAnh || "");
     } else {
-      // Reset form cho chế độ Thêm phim (Mặc định lấy ngày hôm nay)
+      const todayStr = dayjs().format("YYYY-MM-DD");
+      // Reset form cho chế độ Thêm phim (Mặc định ngày hôm nay -> Đang chiếu)
       setFormData({
         tenPhim: "",
         trailer: "",
         moTa: "",
-        ngayKhoiChieu: dayjs().format("YYYY-MM-DD"),
+        ngayKhoiChieu: todayStr,
         dangChieu: true,
         sapChieu: false,
         hot: false,
@@ -72,10 +78,22 @@ export default function MovieFormModal({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+
+    // Tự động cập nhật nút Đang Chiếu / Sắp Chiếu dựa vào Ngày Khởi Chiếu
+    if (name === "ngayKhoiChieu") {
+      const isFuture = value ? dayjs(value).startOf("day").isAfter(dayjs().startOf("day")) : false;
+      setFormData((prev) => ({
+        ...prev,
+        ngayKhoiChieu: value,
+        dangChieu: !isFuture,
+        sapChieu: isFuture,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -90,8 +108,20 @@ export default function MovieFormModal({
     }
   };
 
+  const todayStr = dayjs().format("YYYY-MM-DD");
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (formData.ngayKhoiChieu) {
+      const selectedDate = dayjs(formData.ngayKhoiChieu);
+      const today = dayjs().startOf("day");
+      if (selectedDate.isBefore(today)) {
+        alert("Ngày khởi chiếu không hợp lệ! Vui lòng chọn ngày từ thời điểm hiện tại trở về sau.");
+        return;
+      }
+    }
+
     if (onSubmitSuccess) {
       onSubmitSuccess(formData, isEditMode);
     }
@@ -175,6 +205,7 @@ export default function MovieFormModal({
                   <input
                     type="date"
                     name="ngayKhoiChieu"
+                    min={todayStr}
                     value={formData.ngayKhoiChieu}
                     onChange={handleChange}
                     onClick={(e) => {
@@ -213,30 +244,35 @@ export default function MovieFormModal({
 
               {/* Status Switches (Đang chiếu, Sắp chiếu, Hot) */}
               <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-3">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Trạng Thái & Phân Loại
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Trạng Thái & Phân Loại
+                  </div>
+                  <span className="text-[10px] text-blue-400 font-medium bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">
+                    ⚡ Tự động tính theo ngày khởi chiếu
+                  </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  {/* Đang chiếu */}
-                  <label className="flex items-center space-x-2 cursor-pointer select-none">
+                  {/* Đang chiếu (Disabled, tự động tính theo ngày khởi chiếu) */}
+                  <label className="flex items-center space-x-2 cursor-not-allowed opacity-75 select-none" title="Tự động bật nếu Ngày khởi chiếu <= Hôm nay">
                     <input
                       type="checkbox"
                       name="dangChieu"
+                      disabled
                       checked={formData.dangChieu}
-                      onChange={handleChange}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-not-allowed"
                     />
                     <span className="text-sm font-medium text-slate-300">Đang Chiếu</span>
                   </label>
 
-                  {/* Sắp chiếu */}
-                  <label className="flex items-center space-x-2 cursor-pointer select-none">
+                  {/* Sắp chiếu (Disabled, tự động tính theo ngày khởi chiếu) */}
+                  <label className="flex items-center space-x-2 cursor-not-allowed opacity-75 select-none" title="Tự động bật nếu Ngày khởi chiếu ở tương lai">
                     <input
                       type="checkbox"
                       name="sapChieu"
+                      disabled
                       checked={formData.sapChieu}
-                      onChange={handleChange}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-not-allowed"
                     />
                     <span className="text-sm font-medium text-slate-300">Sắp Chiếu</span>
                   </label>
