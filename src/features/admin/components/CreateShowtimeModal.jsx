@@ -1,36 +1,76 @@
-import { useState } from "react";
-import { X, Calendar, Clock, DollarSign, Building2, Ticket, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Calendar, Clock, Building2, Ticket, Check, Tv, MapPin } from "lucide-react";
+import api from "@/services/api";
 
 export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSuccess }) {
-  const [formData, setFormData] = useState({
-    maHeThongRap: "CGV",
-    maCumRap: "cgv-su-van-hanh",
-    ngayChieuGioChieu: "",
-    giaVe: 90000,
-  });
+  const [cinemaSystems, setCinemaSystems] = useState([]);
+  const [cinemaClusters, setCinemaClusters] = useState([]);
+
+  const [maHeThongRap, setMaHeThongRap] = useState("");
+  const [maCumRap, setMaCumRap] = useState("");
+  const [maRap, setMaRap] = useState("");
+  const [ngayChieuGioChieu, setNgayChieuGioChieu] = useState("");
+  const [giaVe, setGiaVe] = useState(90000);
+
+  // 1. Fetch hệ thống rạp khi modal mở
+  useEffect(() => {
+    if (isOpen) {
+      api.get("QuanLyRap/LayThongTinHeThongRap")
+        .then((res) => {
+          const sys = res.data.content || [];
+          setCinemaSystems(sys);
+          if (sys.length > 0) {
+            setMaHeThongRap(sys[0].maHeThongRap);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
+  // 2. Fetch cụm rạp khi chọn hệ thống rạp
+  useEffect(() => {
+    if (maHeThongRap) {
+      api.get(`QuanLyRap/LayThongTinCumRapTheoHeThong?maHeThongRap=${maHeThongRap}`)
+        .then((res) => {
+          const clusters = res.data.content || [];
+          setCinemaClusters(clusters);
+          if (clusters.length > 0) {
+            setMaCumRap(clusters[0].maCumRap);
+            if (clusters[0].danhSachRap?.length > 0) {
+              setMaRap(String(clusters[0].danhSachRap[0].maRap));
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [maHeThongRap]);
+
+  // 3. Khi đổi cụm rạp -> tự động chọn rạp đầu tiên
+  const handleClusterChange = (e) => {
+    const clusterId = e.target.value;
+    setMaCumRap(clusterId);
+    const selectedCluster = cinemaClusters.find((c) => c.maCumRap === clusterId);
+    if (selectedCluster && selectedCluster.danhSachRap?.length > 0) {
+      setMaRap(String(selectedCluster.danhSachRap[0].maRap));
+    }
+  };
 
   if (!isOpen || !movie) return null;
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onSubmitSuccess) {
-      onSubmitSuccess({ ...formData, maPhim: movie.maPhim });
+      onSubmitSuccess({
+        maPhim: movie.maPhim,
+        maRap: maCumRap || maRap,
+        ngayChieuGioChieu,
+        giaVe: Number(giaVe),
+      });
     }
     onClose();
   };
 
-  const cinemaSystems = [
-    { id: "CGV", name: "CGV Cinema", logo: "https://movienew.cybersoft.edu.vn/hauing/cgv.png" },
-    { id: "BHDStar", name: "BHD Star Cineplex", logo: "https://movienew.cybersoft.edu.vn/hauing/bhd.png" },
-    { id: "Galaxy", name: "Galaxy Cinema", logo: "https://movienew.cybersoft.edu.vn/hauing/galaxy.png" },
-    { id: "Lotte", name: "Lotte Cinema", logo: "https://movienew.cybersoft.edu.vn/hauing/lotte.png" },
-    { id: "MegaGS", name: "Mega GS", logo: "https://movienew.cybersoft.edu.vn/hauing/megags.png" },
-  ];
+  const selectedCluster = cinemaClusters.find((c) => c.maCumRap === maCumRap);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
@@ -72,7 +112,7 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSu
                 Mã Phim: #{movie.maPhim}
               </span>
               <h4 className="font-bold text-sm text-slate-100 mt-1">{movie.tenPhim}</h4>
-              <p className="text-xs text-slate-400">Tạo suất chiếu mới cho khán giả đặt vé</p>
+              <p className="text-xs text-slate-400">Tạo suất chiếu mới từ máy chủ CyberSoft</p>
             </div>
           </div>
 
@@ -83,35 +123,55 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSu
               <span>Hệ Thống Rạp</span>
             </label>
             <select
-              name="maHeThongRap"
-              value={formData.maHeThongRap}
-              onChange={handleChange}
+              value={maHeThongRap}
+              onChange={(e) => setMaHeThongRap(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
             >
               {cinemaSystems.map((sys) => (
-                <option key={sys.id} value={sys.id}>
-                  {sys.name}
+                <option key={sys.maHeThongRap} value={sys.maHeThongRap}>
+                  {sys.tenHeThongRap} ({sys.maHeThongRap})
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Chọn Cụm Rạp */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Cụm Rạp Chiếu
-            </label>
-            <select
-              name="maCumRap"
-              value={formData.maCumRap}
-              onChange={handleChange}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-            >
-              <option value="cgv-su-van-hanh">CGV Sư Vạn Hạnh - Rạp 1</option>
-              <option value="cgv-vincom-dong-khoi">CGV Vincom Đồng Khởi - Rạp 3</option>
-              <option value="bhd-star-32">BHD Star 3/2 - Rạp 2</option>
-              <option value="galaxy-nguyen-du">Galaxy Nguyễn Du - Rạp 5</option>
-            </select>
+          {/* Chọn Cụm Rạp & Rạp Con */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Cụm Rạp</span>
+              </label>
+              <select
+                value={maCumRap}
+                onChange={handleClusterChange}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              >
+                {cinemaClusters.map((c) => (
+                  <option key={c.maCumRap} value={c.maCumRap}>
+                    {c.tenCumRap}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
+                <Tv className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Rạp Con</span>
+              </label>
+              <select
+                value={maRap}
+                onChange={(e) => setMaRap(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              >
+                {selectedCluster?.danhSachRap?.map((r) => (
+                  <option key={r.maRap} value={r.maRap}>
+                    {r.tenRap} (#{r.maRap})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Ngày chiếu & Giờ chiếu */}
@@ -122,10 +182,9 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSu
             </label>
             <input
               type="datetime-local"
-              name="ngayChieuGioChieu"
               required
-              value={formData.ngayChieuGioChieu}
-              onChange={handleChange}
+              value={ngayChieuGioChieu}
+              onChange={(e) => setNgayChieuGioChieu(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
             />
           </div>
@@ -138,14 +197,13 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSu
             </label>
             <input
               type="number"
-              name="giaVe"
               step="5000"
               min="50000"
               max="200000"
               required
-              value={formData.giaVe}
-              onChange={handleChange}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+              value={giaVe}
+              onChange={(e) => setGiaVe(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
             />
           </div>
 

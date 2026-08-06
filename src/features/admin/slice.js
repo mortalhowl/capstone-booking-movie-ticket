@@ -89,10 +89,19 @@ export const actCreateShowtime = createAsyncThunk(
   "adminMovie/actCreateShowtime",
   async (showtimeData, { rejectWithValue }) => {
     try {
-      const response = await api.post("QuanLyDatVe/TaoLichChieu", showtimeData);
+      const formattedDate = dayjs(showtimeData.ngayChieuGioChieu).format("DD/MM/YYYY HH:mm:ss");
+      const payload = {
+        maPhim: Number(showtimeData.maPhim),
+        ngayChieuGioChieu: formattedDate,
+        maRap: String(showtimeData.maRap || showtimeData.maCumRap || "471"),
+        giaVe: Number(showtimeData.giaVe || 90000),
+      };
+      const response = await api.post("QuanLyDatVe/TaoLichChieu", payload);
       return response.data.content;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Tạo lịch chiếu thất bại");
+      return rejectWithValue(
+        error.response?.data?.content || error.response?.data || "Tạo lịch chiếu thất bại"
+      );
     }
   }
 );
