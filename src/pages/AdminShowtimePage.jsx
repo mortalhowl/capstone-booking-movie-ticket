@@ -38,8 +38,14 @@ export default function AdminShowtimePage() {
   const [selectedSystemId, setSelectedSystemId] = useState("");
   const [selectedClusterId, setSelectedClusterId] = useState("");
   const [selectedRapId, setSelectedRapId] = useState("");
-  const [ngayChieuGioChieu, setNgayChieuGioChieu] = useState("");
+  const [ngayChieu, setNgayChieu] = useState(() => new Date().toISOString().split("T")[0]);
+  const [gioChieu, setGioChieu] = useState("19:00");
   const [giaVe, setGiaVe] = useState(90000);
+
+  const timeSlots = [
+    "08:30", "09:45", "11:00", "13:15", "14:30", 
+    "16:00", "17:30", "19:00", "20:30", "22:00"
+  ];
 
   // Local Toast notification
   const [toastMsg, setToastMsg] = useState("");
@@ -127,18 +133,31 @@ export default function AdminShowtimePage() {
   /**
    * 6. Submit Form Tạo Lịch Chiếu
    */
+  const todayStr = new Date().toISOString().split("T")[0];
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedMovieId || !selectedClusterId || !ngayChieuGioChieu || !giaVe) {
+    if (!selectedMovieId || !selectedClusterId || !ngayChieu || !gioChieu || !giaVe) {
       alert("Vui lòng điền đầy đủ các thông tin cần thiết!");
       return;
     }
+
+    // Kiểm tra không cho tạo lịch chiếu ở quá khứ
+    const selectedDateTime = new Date(`${ngayChieu}T${gioChieu}`);
+    const now = new Date();
+
+    if (selectedDateTime < now) {
+      alert("Thời gian chiếu không hợp lệ! Vui lòng chọn ngày & giờ từ thời điểm hiện tại trở về sau.");
+      return;
+    }
+
+    const ngayChieuGioChieuCombined = `${ngayChieu}T${gioChieu}`;
 
     dispatch(
       actCreateShowtime({
         maPhim: selectedMovieId,
         maRap: selectedClusterId,
-        ngayChieuGioChieu,
+        ngayChieuGioChieu: ngayChieuGioChieuCombined,
         giaVe,
       })
     );
@@ -293,25 +312,46 @@ export default function AdminShowtimePage() {
           </div>
 
           {/* 4. Ngày chiếu/Giờ chiếu & Giá Vé */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
-                <Clock className="w-4 h-4 text-indigo-400" />
-                <span>5. Ngày & Giờ Chiếu</span>
+                <Calendar className="w-4 h-4 text-indigo-400" />
+                <span>5. Ngày Chiếu</span>
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 required
-                value={ngayChieuGioChieu}
-                onChange={(e) => setNgayChieuGioChieu(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none transition-colors"
+                min={todayStr}
+                value={ngayChieu}
+                onChange={(e) => setNgayChieu(e.target.value)}
+                onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                style={{ colorScheme: "dark" }}
+                className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none transition-colors cursor-pointer"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+                <Clock className="w-4 h-4 text-indigo-400" />
+                <span>6. Giờ Chiếu</span>
+              </label>
+              <select
+                value={gioChieu}
+                onChange={(e) => setGioChieu(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none transition-colors cursor-pointer"
+              >
+                {timeSlots.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
                 <Ticket className="w-4 h-4 text-indigo-400" />
-                <span>6. Giá Vé (VNĐ)</span>
+                <span>7. Giá Vé (VNĐ)</span>
               </label>
               <input
                 type="number"
@@ -400,7 +440,7 @@ export default function AdminShowtimePage() {
                   <div className="flex items-center justify-between text-slate-300">
                     <span className="text-slate-400">Thời Gian:</span>
                     <span className="font-mono text-emerald-400 font-bold">
-                      {ngayChieuGioChieu ? ngayChieuGioChieu.replace("T", " ") : "Chưa chọn"}
+                      {ngayChieu} {gioChieu}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-slate-300 border-t border-slate-800 pt-2 mt-2">
