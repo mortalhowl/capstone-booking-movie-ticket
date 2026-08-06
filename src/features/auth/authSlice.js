@@ -17,10 +17,19 @@ export const loginServices = createAsyncThunk(
     try {
       const { data } = await loginApi(body);
       const userInfo = data.content;
-      localStorage.setItem("USER_DATA", JSON.stringify(userInfo));
       return userInfo;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      let errorMsg = "Tài khoản hoặc mật khẩu không chính xác!";
+      if (error.response?.data) {
+        if (typeof error.response.data.content === "string") {
+          errorMsg = error.response.data.content;
+        } else if (typeof error.response.data === "string") {
+          errorMsg = error.response.data;
+        } else if (error.response.data.message) {
+          errorMsg = error.response.data.message;
+        }
+      }
+      return thunkAPI.rejectWithValue(errorMsg);
     }
   },
 );

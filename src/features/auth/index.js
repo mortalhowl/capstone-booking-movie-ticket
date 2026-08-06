@@ -1,2 +1,2 @@
-export { default as authReducer } from "./authSlice";
+export { default as authReducer, logoutUser, loginServices, registerServices, getUserProfileServices } from "./authSlice";
 export { default } from "./hooks/useAuth";
