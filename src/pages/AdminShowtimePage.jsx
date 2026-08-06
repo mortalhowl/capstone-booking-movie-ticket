@@ -135,6 +135,29 @@ export default function AdminShowtimePage() {
    */
   const todayStr = new Date().toISOString().split("T")[0];
 
+  // Kiểm tra xem time slot có ở quá khứ so với thời điểm hiện tại hay không
+  const isTimeSlotPast = (slot) => {
+    if (ngayChieu !== todayStr) return false;
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const [h, m] = slot.split(":").map(Number);
+
+    if (h < currentHour) return true;
+    if (h === currentHour && m <= currentMinute) return true;
+    return false;
+  };
+
+  // Tự động chọn khung giờ hợp lệ đầu tiên nếu giờ hiện tại đã bị trôi qua
+  useEffect(() => {
+    if (ngayChieu === todayStr) {
+      const validSlot = timeSlots.find((slot) => !isTimeSlotPast(slot));
+      if (validSlot) {
+        setGioChieu(validSlot);
+      }
+    }
+  }, [ngayChieu]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedMovieId || !selectedClusterId || !ngayChieu || !gioChieu || !giaVe) {
@@ -340,11 +363,14 @@ export default function AdminShowtimePage() {
                 onChange={(e) => setGioChieu(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none transition-colors cursor-pointer"
               >
-                {timeSlots.map((slot) => (
-                  <option key={slot} value={slot}>
-                    {slot}
-                  </option>
-                ))}
+                {timeSlots.map((slot) => {
+                  const isPast = isTimeSlotPast(slot);
+                  return (
+                    <option key={slot} value={slot} disabled={isPast} className={isPast ? "text-slate-600 bg-slate-950" : ""}>
+                      {slot} {isPast ? "(Đã qua)" : ""}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
