@@ -89,14 +89,10 @@ export default function MovieFormModal({
 
     // Tự động tính toán Đang Chiếu & Sắp Chiếu dựa vào Ngày Khởi Chiếu
     if (name === "ngayKhoiChieu") {
-      let finalDateStr = value;
-      if (value && dayjs(value).startOf("day").isBefore(dayjs().startOf("day"))) {
-        finalDateStr = dayjs().format("YYYY-MM-DD");
-      }
-      const isStrictFuture = finalDateStr ? dayjs(finalDateStr).startOf("day").isAfter(dayjs().startOf("day")) : false;
+      const isStrictFuture = value ? dayjs(value).startOf("day").isAfter(dayjs().startOf("day")) : false;
       setFormData((prev) => ({
         ...prev,
-        ngayKhoiChieu: finalDateStr,
+        ngayKhoiChieu: value,
         dangChieu: !isStrictFuture,
         sapChieu: isStrictFuture,
       }));
@@ -130,13 +126,9 @@ export default function MovieFormModal({
       return;
     }
 
-    if (formData.ngayKhoiChieu) {
-      const selectedDate = dayjs(formData.ngayKhoiChieu);
-      const today = dayjs().startOf("day");
-      if (selectedDate.isBefore(today)) {
-        alert("Ngày khởi chiếu không hợp lệ! Vui lòng chọn ngày từ thời điểm hiện tại trở về sau.");
-        return;
-      }
+    if (!formData.ngayKhoiChieu) {
+      alert("Vui lòng chọn ngày khởi chiếu cho phim!");
+      return;
     }
 
     if (onSubmitSuccess) {
@@ -222,7 +214,6 @@ export default function MovieFormModal({
                   <input
                     type="date"
                     name="ngayKhoiChieu"
-                    min={todayStr}
                     value={formData.ngayKhoiChieu}
                     onChange={handleChange}
                     onKeyDown={(e) => e.preventDefault()}
