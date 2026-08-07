@@ -137,6 +137,18 @@ export default function AdminMoviePage() {
 
     if (formData.fileImage) {
       formDataObj.append("File", formData.fileImage, formData.fileImage.name);
+    } else {
+      // Tạo 1 File hợp lệ làm fallback khi sửa phim mà không chọn lại poster mới (tránh lỗi thiếu File của API CyberSoft)
+      const base64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+      const byteString = atob(base64.split(",")[1]);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: "image/png" });
+      const dummyFile = new File([blob], "poster_default.png", { type: "image/png" });
+      formDataObj.append("File", dummyFile, dummyFile.name);
     }
 
     if (isEditMode) {

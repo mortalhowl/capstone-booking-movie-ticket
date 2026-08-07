@@ -53,37 +53,7 @@ export const actUpdateMovie = createAsyncThunk(
   "adminMovie/actUpdateMovie",
   async (formData, { rejectWithValue, dispatch }) => {
     try {
-      let response;
-      const hasFile = formData.get("File");
-
-      if (hasFile) {
-        // Nếu có chọn file ảnh mới -> Gọi endpoint CapNhatPhimUpload
-        response = await api.post("QuanLyPhim/CapNhatPhimUpload", formData);
-      } else {
-        // Nếu chỉ sửa thông tin (ngày chiếu, tên, mô tả...) không đổi ảnh -> Gọi endpoint CapNhatPhim bằng JSON payload
-        const jsonPayload = {
-          maPhim: Number(formData.get("maPhim")),
-          tenPhim: formData.get("tenPhim"),
-          biDanh: formData.get("biDanh"),
-          trailer: formData.get("trailer"),
-          moTa: formData.get("moTa"),
-          ngayKhoiChieu: formData.get("ngayKhoiChieu"),
-          dangChieu: formData.get("dangChieu") === "true",
-          sapChieu: formData.get("sapChieu") === "true",
-          hot: formData.get("hot") === "true",
-          danhGia: Number(formData.get("danhGia")),
-          maNhom: formData.get("maNhom") || "GP01",
-          hinhAnh: formData.get("hinhAnh") || "",
-        };
-
-        try {
-          response = await api.post("QuanLyPhim/CapNhatPhim", jsonPayload);
-        } catch (err) {
-          // Fallback thử endpoint CapNhatPhimUpload với FormData nếu CapNhatPhim trả về lỗi
-          response = await api.post("QuanLyPhim/CapNhatPhimUpload", formData);
-        }
-      }
-
+      const response = await api.post("QuanLyPhim/CapNhatPhimUpload", formData);
       // Sau khi cập nhật thành công, gọi lại API tải lại danh sách mới
       dispatch(fetchListMovie());
       return response.data.content;
