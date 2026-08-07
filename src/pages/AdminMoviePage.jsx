@@ -116,7 +116,9 @@ export default function AdminMoviePage() {
           .replace(/[^a-z0-9]/g, "-")
       : "";
 
-    formDataObj.append("maPhim", isEditMode && selectedMovieForEdit ? selectedMovieForEdit.maPhim : 0);
+    if (isEditMode && selectedMovieForEdit) {
+      formDataObj.append("maPhim", selectedMovieForEdit.maPhim);
+    }
     formDataObj.append("tenPhim", formData.tenPhim);
     formDataObj.append("biDanh", biDanhStr);
     formDataObj.append("trailer", formData.trailer || "");

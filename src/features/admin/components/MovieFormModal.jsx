@@ -117,6 +117,11 @@ export default function MovieFormModal({
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!isEditMode && !formData.fileImage) {
+      alert("Vui lòng tải lên hình ảnh poster cho phim mới!");
+      return;
+    }
+
     if (formData.ngayKhoiChieu) {
       const selectedDate = dayjs(formData.ngayKhoiChieu);
       const today = dayjs().startOf("day");
