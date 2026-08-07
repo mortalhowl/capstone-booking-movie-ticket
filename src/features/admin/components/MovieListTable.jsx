@@ -1,4 +1,5 @@
 import { useState } from "react";
+import dayjs from "dayjs";
 import {
   Search,
   Plus,
@@ -21,6 +22,16 @@ export default function MovieListTable({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL"); // ALL, DANG_CHIEU, SAP_CHIEU, HOT
+
+  // Hàm định dạng hiển thị CHỈ NGÀY (DD/MM/YYYY), loại bỏ hoàn toàn giờ
+  const formatDateOnly = (dateStr) => {
+    if (!dateStr) return "--/--/----";
+    if (typeof dateStr === "string" && dateStr.includes("/")) {
+      return dateStr.split(" ")[0]; // Cắt bỏ phần giờ đằng sau nếu có
+    }
+    const parsed = dayjs(dateStr);
+    return parsed.isValid() ? parsed.format("DD/MM/YYYY") : String(dateStr).split(" ")[0];
+  };
 
   // State Phân trang (Pagination)
   const [currentPage, setCurrentPage] = useState(1);
@@ -249,11 +260,11 @@ export default function MovieListTable({
                     </div>
                   </td>
 
-                  {/* Ngày khởi chiếu */}
+                  {/* Ngày khởi chiếu (chỉ hiển thị ngày, không có giờ) */}
                   <td className="py-3 px-4 text-xs text-slate-400">
                     <div className="flex items-center space-x-1.5">
                       <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{movie.ngayKhoiChieu || "--/--/----"}</span>
+                      <span className="font-medium text-slate-300">{formatDateOnly(movie.ngayKhoiChieu)}</span>
                     </div>
                   </td>
 
