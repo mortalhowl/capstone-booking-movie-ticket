@@ -171,6 +171,21 @@ const adminMovieSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
+
+    // --- Xử lý Tạo lịch chiếu ---
+    builder
+      .addCase(actCreateShowtime.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(actCreateShowtime.fulfilled, (state) => {
+        state.loading = false;
+        state.successMessage = "Tạo lịch chiếu phim thành công!";
+      })
+      .addCase(actCreateShowtime.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
