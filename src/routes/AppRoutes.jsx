@@ -14,6 +14,10 @@ import TicketRoomPage from "@/pages/TicketRoomPage";
 import AccountPage from "@/pages/AccountPage";
 import TestApi from "@/pages/TestApi";
 
+import AdminMoviePage from "@/pages/AdminMoviePage";
+import AdminShowtimePage from "@/pages/AdminShowtimePage";
+import AdminUserPage from "@/pages/AdminUserPage";
+
 export const router = createBrowserRouter([
   {
     path: "auth/login",
@@ -90,40 +94,23 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="/admin/showtimes" replace />,
+            element: <Navigate to="/admin/movies" replace />,
           },
           {
             path: "movies",
-            element: (
-              <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl">
-                <h1 className="text-xl font-bold text-slate-100 mb-2">Quản Lý Phim</h1>
-                <p className="text-sm text-slate-400">
-                  Trang Quản lý danh sách phim thuộc hệ thống Quản Trị Admin CyberSoft.
-                </p>
-              </div>
-            ),
-          },
-          {
-            path: "showtimes",
-            element: (
-              <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl">
-                <h1 className="text-xl font-bold text-slate-100 mb-2">Quản Lý Lịch Chiếu</h1>
-                <p className="text-sm text-slate-400">
-                  Trang Quản lý Lịch chiếu phim thuộc hệ thống Quản Trị Admin CyberSoft.
-                </p>
-              </div>
-            ),
+            element: <AdminMoviePage />,
           },
           {
             path: "users",
-            element: (
-              <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl">
-                <h1 className="text-xl font-bold text-slate-100 mb-2">Quản Lý Người Dùng</h1>
-                <p className="text-sm text-slate-400">
-                  Trang Quản lý Người dùng thuộc hệ thống Quản Trị Admin CyberSoft.
-                </p>
-              </div>
-            ),
+            element: <AdminUserPage />,
+          },
+          {
+            path: "showtimes",
+            element: <AdminShowtimePage />,
+          },
+          {
+            path: "showtime",
+            element: <AdminShowtimePage />,
           },
         ],
       },

@@ -16,7 +16,7 @@ const formInfo = [
     rules: {
       isUsername: true,
       min: 3,
-      max: 20,
+      max: 30,
     },
   },
   {
@@ -26,8 +26,8 @@ const formInfo = [
     placeholder: "••••••••",
     rules: {
       isPassword: true,
-      min: 6,
-      max: 20,
+      min: 3,
+      max: 30,
     },
   },
 ];

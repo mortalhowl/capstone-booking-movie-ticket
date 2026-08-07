@@ -14,6 +14,8 @@ export default function AdminLayout() {
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất tài khoản Quản trị?")) {
       dispatch(logoutUser());
+      localStorage.removeItem("USER_ADMIN");
+      localStorage.removeItem("USER_DATA");
       navigate("/admin/login");
     }
   };
@@ -51,20 +53,6 @@ export default function AdminLayout() {
             </NavLink>
 
             <NavLink
-              to="/admin/showtimes"
-              className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-                }`
-              }
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Quản Lý Lịch Chiếu</span>
-            </NavLink>
-
-            <NavLink
               to="/admin/users"
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
@@ -76,6 +64,20 @@ export default function AdminLayout() {
             >
               <Users className="w-4 h-4" />
               <span>Quản Lý Người Dùng</span>
+            </NavLink>
+
+            <NavLink
+              to="/admin/showtimes"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                }`
+              }
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Quản Lý Lịch Chiếu</span>
             </NavLink>
           </nav>
         </div>

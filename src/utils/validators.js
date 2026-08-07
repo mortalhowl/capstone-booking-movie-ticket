@@ -13,15 +13,14 @@ export default function validators(value, label, options = {}) {
     return `${label} không được vượt quá ${options.max} ký tự`;
 
   if (options.isUsername) {
-    const regex = /^[a-zA-Z0-9_.-]{3,20}$/;
-    if (!regex.test(value))
-      return `${label} từ 3-20 ký tự, không chứa khoảng trắng hoặc ký tự đặc biệt`;
+    const regex = /^[a-zA-Z0-9_.-]{3,30}$/;
+    if (!regex.test(trimValue))
+      return `${label} từ 3-30 ký tự, không chứa khoảng trắng hoặc ký tự đặc biệt`;
   }
 
   if (options.isPassword) {
-    const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,20}$/;
-    if (!regex.test(value)) {
-      return `${label} từ 6-20 ký tự, phải bao gồm cả chữ và số`;
+    if (trimValue.length < 3 || trimValue.length > 30) {
+      return `${label} từ 3-30 ký tự`;
     }
   }
 

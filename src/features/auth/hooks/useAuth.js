@@ -25,7 +25,7 @@ export default function useAuth() {
         : location.state?.from || "/";
 
       if (res?.maLoaiNguoiDung === "QuanTri") {
-        navigate("/admin/dashboard", { replace: true });
+        navigate("/admin", { replace: true });
       } else {
         navigate(from, { replace: true });
       }
