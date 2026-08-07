@@ -17,12 +17,15 @@ export const loginServices = createAsyncThunk(
     try {
       const { data } = await loginApi(body);
       const userInfo = data.content;
-      localStorage.setItem("USER_DATA", JSON.stringify(userInfo));
       return userInfo;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.content || error.message || "Đăng nhập thất bại"
-      );
+      let errorMsg =
+        error.response?.data?.content ||
+        (typeof error.response?.data === "string" ? error.response.data : null) ||
+        error.response?.data?.message ||
+        error.message ||
+        "Tài khoản hoặc mật khẩu không chính xác!";
+      return thunkAPI.rejectWithValue(errorMsg);
     }
   }
 );

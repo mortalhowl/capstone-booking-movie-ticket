@@ -7,15 +7,23 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const userData = JSON.parse(localStorage.getItem("USER_DATA"));
-    if (userData && userData.accessToken) {
-      config.headers.Authorization = `Bearer ${userData.accessToken}`;
+    const localUserStr = localStorage.getItem("USER_DATA");
+    const user = localUserStr ? JSON.parse(localUserStr) : null;
+
+    config.headers = {
+      ...config.headers,
+      TokenCybersoft: import.meta.env.VITE_TOKEN_CYBERSOFT,
+    };
+
+    if (user?.accessToken) {
+      config.headers.Authorization = `Bearer ${user.accessToken}`;
+    } else {
+      delete config.headers.Authorization;
     }
-    config.headers.TokenCybersoft = import.meta.env.VITE_TOKEN_CYBERSOFT;
 
     return config;
   },
   (error) => {
     return Promise.reject(error);
-  },
+  }
 );
