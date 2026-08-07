@@ -130,6 +130,8 @@ export default function AdminMoviePage() {
     formDataObj.append("danhGia", formData.danhGia || 10);
     formDataObj.append("maNhom", import.meta.env.VITE_MA_NHOM || "GP01");
 
+    formDataObj.append("hinhAnh", formData.hinhAnh || "");
+
     if (formData.fileImage) {
       formDataObj.append("File", formData.fileImage, formData.fileImage.name);
     }
