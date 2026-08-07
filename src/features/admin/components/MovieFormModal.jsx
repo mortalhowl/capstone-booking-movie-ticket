@@ -121,8 +121,8 @@ export default function MovieFormModal({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!isEditMode && !formData.fileImage) {
-      alert("Vui lòng tải lên hình ảnh poster cho phim mới!");
+    if (!formData.tenPhim || !formData.tenPhim.trim()) {
+      alert("Vui lòng nhập tên phim!");
       return;
     }
 

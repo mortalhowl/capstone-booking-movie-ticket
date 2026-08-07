@@ -40,7 +40,11 @@ export const actAddMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return response.data.content;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Thêm phim thất bại");
+      const errorMsg =
+        error.response?.data?.content ||
+        error.response?.data?.message ||
+        "Thêm phim thất bại. Tên phim có thể đã tồn tại!";
+      return rejectWithValue(errorMsg);
     }
   }
 );
