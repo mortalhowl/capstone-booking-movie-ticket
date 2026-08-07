@@ -58,7 +58,11 @@ export const actUpdateMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return response.data.content;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Cập nhật phim thất bại");
+      const errorMsg =
+        error.response?.data?.content ||
+        error.response?.data?.message ||
+        "Cập nhật phim thất bại. Vui lòng kiểm tra lại quyền Admin.";
+      return rejectWithValue(errorMsg);
     }
   }
 );
@@ -76,7 +80,11 @@ export const actDeleteMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return maPhim;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Xóa phim thất bại");
+      const errorMsg =
+        error.response?.data?.content ||
+        error.response?.data?.message ||
+        "Xóa phim thất bại. Phim có thể đã được tạo lịch chiếu hoặc không thuộc nhóm bạn quản lý.";
+      return rejectWithValue(errorMsg);
     }
   }
 );

@@ -16,12 +16,10 @@ const api = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
-    // Lấy thông tin user admin đăng nhập từ localStorage
-    const userAdmin = localStorage.getItem("USER_ADMIN")
-      ? JSON.parse(localStorage.getItem("USER_ADMIN"))
-      : null;
-
-    const accessToken = userAdmin?.accessToken || "";
+    // Lấy thông tin user admin đăng nhập từ localStorage (kiểm tra cả USER_ADMIN và USER_DATA)
+    const userLocalStr = localStorage.getItem("USER_ADMIN") || localStorage.getItem("USER_DATA");
+    const userObj = userLocalStr ? JSON.parse(userLocalStr) : null;
+    const accessToken = userObj?.accessToken || userObj?.token || "";
 
     config.headers = {
       ...config.headers,
