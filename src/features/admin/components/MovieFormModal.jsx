@@ -79,18 +79,30 @@ export default function MovieFormModal({
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Tự động cập nhật nút Đang Chiếu / Sắp Chiếu dựa vào Ngày Khởi Chiếu (khóa ngày quá khứ)
+    // Xử lý linh hoạt Đang Chiếu & Sắp Chiếu
     if (name === "ngayKhoiChieu") {
       let finalDateStr = value;
       if (value && dayjs(value).startOf("day").isBefore(dayjs().startOf("day"))) {
         finalDateStr = dayjs().format("YYYY-MM-DD");
       }
-      const isFuture = finalDateStr ? dayjs(finalDateStr).startOf("day").isAfter(dayjs().startOf("day")) : false;
+      const isStrictFuture = finalDateStr ? dayjs(finalDateStr).startOf("day").isAfter(dayjs().startOf("day")) : false;
       setFormData((prev) => ({
         ...prev,
         ngayKhoiChieu: finalDateStr,
-        dangChieu: !isFuture,
-        sapChieu: isFuture,
+        dangChieu: !isStrictFuture,
+        sapChieu: isStrictFuture,
+      }));
+    } else if (name === "dangChieu") {
+      setFormData((prev) => ({
+        ...prev,
+        dangChieu: checked,
+        sapChieu: checked ? false : prev.sapChieu,
+      }));
+    } else if (name === "sapChieu") {
+      setFormData((prev) => ({
+        ...prev,
+        sapChieu: checked,
+        dangChieu: checked ? false : prev.dangChieu,
       }));
     } else {
       setFormData((prev) => ({
@@ -258,26 +270,26 @@ export default function MovieFormModal({
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  {/* Đang chiếu (Disabled, tự động tính theo ngày khởi chiếu) */}
-                  <label className="flex items-center space-x-2 cursor-not-allowed opacity-75 select-none" title="Tự động bật nếu Ngày khởi chiếu <= Hôm nay">
+                  {/* Đang chiếu */}
+                  <label className="flex items-center space-x-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       name="dangChieu"
-                      disabled
                       checked={formData.dangChieu}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-not-allowed"
+                      onChange={handleChange}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                     <span className="text-sm font-medium text-slate-300">Đang Chiếu</span>
                   </label>
 
-                  {/* Sắp chiếu (Disabled, tự động tính theo ngày khởi chiếu) */}
-                  <label className="flex items-center space-x-2 cursor-not-allowed opacity-75 select-none" title="Tự động bật nếu Ngày khởi chiếu ở tương lai">
+                  {/* Sắp chiếu */}
+                  <label className="flex items-center space-x-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       name="sapChieu"
-                      disabled
                       checked={formData.sapChieu}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-not-allowed"
+                      onChange={handleChange}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                     <span className="text-sm font-medium text-slate-300">Sắp Chiếu</span>
                   </label>
