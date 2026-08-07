@@ -2,19 +2,35 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import ClientLayout from "@/layouts/ClientLayout/ClientLayout";
 import AdminLayout from "@/layouts/AdminLayout/AdminLayout";
+import AdminGuard from "@/routes/AdminGuard";
+import ProtectedRoute from "@/routes/ProtectedRoute";
 
-import TestPage from "@/pages/TestPage";
-import TestSearchPage from "@/pages/TestSearchPage";
-import TestMovieDetailPage from "@/pages/TestMovieDetailPage";
-import TestApi from "@/pages/TestApi";
+import NotFoundPage from "@/pages/NotFoundPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import HomePage from "@/pages/HomePage";
+import MovieDetailPage from "@/pages/MovieDetailPage";
+import TicketRoomPage from "@/pages/TicketRoomPage";
+import AccountPage from "@/pages/AccountPage";
+import TestApi from "@/pages/TestApi";
 
 import AdminMoviePage from "@/pages/AdminMoviePage";
 import AdminShowtimePage from "@/pages/AdminShowtimePage";
+import AdminUserPage from "@/pages/AdminUserPage";
 
 export const router = createBrowserRouter([
+  {
+    path: "auth/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "auth/register",
+    element: <RegisterPage />,
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
   {
     path: "/",
     element: <ClientLayout />,
@@ -24,46 +40,79 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "/auth/login",
-        element: <LoginPage />,
+        path: "movie/:maPhim",
+        element: <MovieDetailPage />,
       },
       {
-        path: "/auth/register",
-        element: <RegisterPage />,
+        path: "booking/:maLichChieu",
+        element: (
+          <ProtectedRoute>
+            <TicketRoomPage />
+          </ProtectedRoute>
+        ),
       },
       {
-        path: "/test",
-        element: <TestPage />,
+        path: "user-info",
+        element: (
+          <ProtectedRoute>
+            <AccountPage />
+          </ProtectedRoute>
+        ),
       },
       {
-        path: "/test/movie",
-        element: <TestSearchPage />,
+        path: "booking-history",
+        element: (
+          <ProtectedRoute>
+            <AccountPage />
+          </ProtectedRoute>
+        ),
       },
       {
-        path: "/movie/:maPhim",
-        element: <TestMovieDetailPage />,
+        path: "account",
+        element: (
+          <ProtectedRoute>
+            <AccountPage />
+          </ProtectedRoute>
+        ),
       },
       {
-        path: "/test/api",
+        path: "test-api",
         element: <TestApi />,
       },
     ],
   },
   {
+    path: "/admin/login",
+    element: <LoginPage />,
+  },
+  {
     path: "/admin",
-    element: <AdminLayout />,
+    element: <AdminGuard />,
     children: [
       {
-        index: true,
-        element: <Navigate to="/admin/movies" replace />,
-      },
-      {
-        path: "movies",
-        element: <AdminMoviePage />,
-      },
-      {
-        path: "showtime",
-        element: <AdminShowtimePage />,
+        element: <AdminLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/admin/movies" replace />,
+          },
+          {
+            path: "movies",
+            element: <AdminMoviePage />,
+          },
+          {
+            path: "users",
+            element: <AdminUserPage />,
+          },
+          {
+            path: "showtimes",
+            element: <AdminShowtimePage />,
+          },
+          {
+            path: "showtime",
+            element: <AdminShowtimePage />,
+          },
+        ],
       },
     ],
   },

@@ -16,7 +16,7 @@ const formInfo = [
     rules: {
       isUsername: true,
       min: 3,
-      max: 20,
+      max: 30,
     },
   },
   {
@@ -26,8 +26,8 @@ const formInfo = [
     placeholder: "••••••••",
     rules: {
       isPassword: true,
-      min: 6,
-      max: 20,
+      min: 3,
+      max: 30,
     },
   },
 ];
@@ -47,7 +47,6 @@ export default function LoginForm() {
     const { value, name } = e.target;
     setUser({ ...user, [name]: value });
   };
-  console.log(user);
 
   const handleBlur = (e) => {
     const { value, name } = e.target;
@@ -58,7 +57,6 @@ export default function LoginForm() {
       [name]: errorMess,
     });
   };
-  console.log(validation);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -82,10 +80,9 @@ export default function LoginForm() {
       return;
     }
 
-    console.log(isValid, newValidation);
-
     handleLogin(user);
   };
+
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       <div className="bg-blue-600 px-6 py-8 text-center">

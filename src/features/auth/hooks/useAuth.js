@@ -6,74 +6,98 @@ import {
   getUserProfileServices,
   updateUserProfileServices,
 } from "../authSlice";
-import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function useAuth() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { data, userInfo, loading, error } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    if (data && data.accessToken) {
-      if (data.maLoaiNguoiDung === "QuanTri") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/");
-      }
-    }
-  }, [data, error, navigate]);
 
   const handleLogin = async (body) => {
     try {
-      await dispatch(loginServices(body)).unwrap();
+      const res = await dispatch(loginServices(body)).unwrap();
       toast.success("Đăng nhập thành công!");
-      if (data.maLoaiNguoiDung === "QuanTri") {
-        navigate("/admin/dashboard");
+
+      const from = location.state?.from?.pathname
+        ? `${location.state.from.pathname}${location.state.from.search || ""}`
+        : location.state?.from || "/";
+
+      if (res?.maLoaiNguoiDung === "QuanTri") {
+        navigate("/admin", { replace: true });
       } else {
-        navigate("/");
+        navigate(from, { replace: true });
       }
-    } catch {
-      toast.error(error.message);
+      return res;
+    } catch (err) {
+      toast.error(
+        typeof err === "string" ? err : err?.message || "Đăng nhập thất bại"
+      );
+      throw err;
     }
   };
 
   const handleLogout = () => {
     dispatch(logoutUser());
     toast.success("Đăng xuất thành công");
+    navigate("/auth/login");
   };
 
   const handleRegister = async (body) => {
     try {
-      await dispatch(registerServices(body)).unwrap();
-      toast.success("Đăng kí thành công, vui lòng đăng nhập");
+      const res = await dispatch(registerServices(body)).unwrap();
+      toast.success("Đăng ký thành công, vui lòng đăng nhập!");
       navigate("/auth/login");
-    } catch {
-      toast.error(error.content);
+      return res;
+    } catch (err) {
+      toast.error(
+        typeof err === "string" ? err : err?.message || "Đăng ký thất bại"
+      );
+      throw err;
     }
   };
 
-  const handleGetProfile = () => {
-    dispatch(getUserProfileServices());
+  const handleGetProfile = async () => {
+    try {
+      const res = await dispatch(getUserProfileServices()).unwrap();
+      return res;
+    } catch (err) {
+      toast.error(
+        typeof err === "string"
+          ? err
+          : err?.message || "Lấy thông tin tài khoản thất bại"
+      );
+      throw err;
+    }
   };
 
   const handleUpdateProfile = async (body) => {
     try {
-      await dispatch(updateUserProfileServices(body)).unwrap();
-      toast.success("Cập nhật thông tin thành công");
-      handleGetProfile();
-    } catch {
-      toast.error(error);
+      const res = await dispatch(updateUserProfileServices(body)).unwrap();
+      toast.success("Cập nhật thông tin thành công!");
+      dispatch(getUserProfileServices());
+      return res;
+    } catch (err) {
+      toast.error(
+        typeof err === "string"
+          ? err
+          : err?.message || "Cập nhật thông tin thất bại"
+      );
+      throw err;
     }
   };
 
+  const isAuthenticated = Boolean(data && data.accessToken);
+
   return {
+    isAuthenticated,
     handleLogin,
     handleLogout,
     handleRegister,
     handleGetProfile,
     handleUpdateProfile,
+    data,
     userInfo,
     loading,
     error,

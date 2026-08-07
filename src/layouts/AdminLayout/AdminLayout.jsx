@@ -1,156 +1,137 @@
-import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
-import {
-  Film,
-  Calendar,
-  Users,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  X,
-  Bell,
-  User,
-  Clapperboard,
-} from "lucide-react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Film, Calendar, Users, LogOut, ShieldCheck, UserCheck } from "lucide-react";
+import { logoutUser } from "@/features/auth/authSlice";
 
 export default function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { data } = useSelector((state) => state.auth);
 
-  const navItems = [
-    {
-      title: "Quản Lý Phim",
-      path: "/admin/movies",
-      icon: Film,
-    },
-    {
-      title: "Tạo Lịch Chiếu",
-      path: "/admin/showtime",
-      icon: Calendar,
-    },
-  ];
+  const localUserStr = localStorage.getItem("USER_DATA");
+  const currentUser = data || (localUserStr ? JSON.parse(localUserStr) : null);
+
+  const handleLogout = () => {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất tài khoản Quản trị?")) {
+      dispatch(logoutUser());
+      localStorage.removeItem("USER_ADMIN");
+      localStorage.removeItem("USER_DATA");
+      navigate("/admin/login");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex font-sans">
-      {/* Sidebar Overlay for Mobile */}
-      {!sidebarOpen && (
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="lg:hidden fixed bottom-4 right-4 z-50 p-3 bg-blue-600 rounded-full shadow-lg text-white"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-slate-950 border-r border-slate-800/80 flex flex-col transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-        {/* Logo Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Clapperboard className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4 sticky top-0 h-screen">
+        <div>
+          {/* Logo Brand */}
+          <div className="flex items-center space-x-3 px-3 py-4 mb-6 border-b border-slate-800/80">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+              <Film className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-none text-white tracking-wide">
-                Admin Portal
-              </h1>
-              <span className="text-[11px] text-blue-400 font-medium">
-                Movie Booking CyberSoft
-              </span>
+              <h2 className="font-extrabold text-sm text-slate-100 tracking-wide uppercase">Admin Portal</h2>
+              <p className="text-[10px] text-blue-400 font-mono">CyberSoft Movie</p>
             </div>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Navigation Menu */}
-        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-          <div className="px-3 pb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Quản Lý Chức Năng
-          </div>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname.startsWith(item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+          {/* Menu Items */}
+          <nav className="space-y-1">
+            <NavLink
+              to="/admin/movies"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                   isActive
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-slate-400"}`} />
-                <span>{item.title}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User Footer Profile */}
-        <div className="p-4 border-t border-slate-800/80">
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-            <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-semibold text-sm">
-                AD
-              </div>
-              <div className="text-xs">
-                <p className="font-semibold text-slate-200">Quản Trị Viên</p>
-                <p className="text-slate-400">admin@cybersoft.vn</p>
-              </div>
-            </div>
-            <button
-              title="Đăng xuất"
-              className="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                }`
+              }
             >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+              <Film className="w-4 h-4" />
+              <span>Quản Lý Phim</span>
+            </NavLink>
+
+            <NavLink
+              to="/admin/users"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                }`
+              }
+            >
+              <Users className="w-4 h-4" />
+              <span>Quản Lý Người Dùng</span>
+            </NavLink>
+
+            <NavLink
+              to="/admin/showtimes"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                }`
+              }
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Quản Lý Lịch Chiếu</span>
+            </NavLink>
+          </nav>
+        </div>
+
+        {/* Sidebar Footer Logout button */}
+        <div className="pt-4 border-t border-slate-800">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center space-x-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Đăng Xuất</span>
+          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Navbar */}
-        <header className="h-16 bg-slate-950/60 backdrop-blur-md border-b border-slate-800/80 px-6 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-slate-400 hover:text-slate-200 p-2 rounded-lg hover:bg-slate-900 transition-colors"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div className="text-sm text-slate-400 hidden sm:block">
-              Hệ thống Quản lý Phim & Đặt vé Phim
-            </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header Bar */}
+        <header className="h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 flex items-center justify-between sticky top-0 z-40">
+          <div className="flex items-center space-x-2 text-xs text-slate-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Bảng Điều Khiển Quản Trị Viên</span>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <button className="p-2 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-900 transition-colors relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-            </button>
-
-            <div className="h-6 w-px bg-slate-800"></div>
-
-            <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>Hệ thống Hoạt động</span>
+          {/* Right Top Header Actions */}
+          <div className="flex items-center space-x-4">
+            {/* User Info Badge */}
+            <div className="flex items-center space-x-3 bg-slate-950 border border-slate-800 px-3.5 py-1.5 rounded-full">
+              <div className="w-7 h-7 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                <UserCheck className="w-4 h-4" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-slate-200 leading-tight">
+                  {currentUser?.hoTen || currentUser?.taiKhoan || "Admin User"}
+                </p>
+                <p className="text-[10px] text-emerald-400 font-medium">Quản Trị Viên</p>
+              </div>
             </div>
+
+            {/* Topbar Logout Button */}
+            <button
+              onClick={handleLogout}
+              title="Đăng xuất tài khoản"
+              className="flex items-center space-x-1.5 bg-slate-950 hover:bg-rose-950/40 text-slate-300 hover:text-rose-400 border border-slate-800 hover:border-rose-500/40 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Đăng xuất</span>
+            </button>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-900">
+        {/* Dynamic Route Content */}
+        <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </main>
       </div>
