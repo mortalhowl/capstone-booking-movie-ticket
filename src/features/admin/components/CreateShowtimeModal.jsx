@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { X, Calendar, Clock, DollarSign, Building2, Ticket, Check } from "lucide-react";
+import dayjs from "dayjs";
 
 export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSuccess }) {
+  const minDateTimeStr = dayjs().format("YYYY-MM-DDTHH:mm");
+
   const [formData, setFormData] = useState({
     maHeThongRap: "CGV",
     maCumRap: "cgv-su-van-hanh",
-    ngayChieuGioChieu: "",
+    ngayChieuGioChieu: minDateTimeStr,
     giaVe: 90000,
   });
 
@@ -13,7 +16,16 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSu
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let finalValue = value;
+
+    // Khóa không cho chọn ngày giờ quá khứ
+    if (name === "ngayChieuGioChieu" && value) {
+      if (dayjs(value).isBefore(dayjs())) {
+        finalValue = dayjs().format("YYYY-MM-DDTHH:mm");
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: finalValue }));
   };
 
   const handleSubmit = (e) => {
@@ -124,9 +136,11 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, onSubmitSu
               type="datetime-local"
               name="ngayChieuGioChieu"
               required
+              min={minDateTimeStr}
               value={formData.ngayChieuGioChieu}
               onChange={handleChange}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+              onKeyDown={(e) => e.preventDefault()}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
             />
           </div>
 

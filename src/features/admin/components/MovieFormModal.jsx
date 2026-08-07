@@ -79,12 +79,16 @@ export default function MovieFormModal({
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Tự động cập nhật nút Đang Chiếu / Sắp Chiếu dựa vào Ngày Khởi Chiếu
+    // Tự động cập nhật nút Đang Chiếu / Sắp Chiếu dựa vào Ngày Khởi Chiếu (khóa ngày quá khứ)
     if (name === "ngayKhoiChieu") {
-      const isFuture = value ? dayjs(value).startOf("day").isAfter(dayjs().startOf("day")) : false;
+      let finalDateStr = value;
+      if (value && dayjs(value).startOf("day").isBefore(dayjs().startOf("day"))) {
+        finalDateStr = dayjs().format("YYYY-MM-DD");
+      }
+      const isFuture = finalDateStr ? dayjs(finalDateStr).startOf("day").isAfter(dayjs().startOf("day")) : false;
       setFormData((prev) => ({
         ...prev,
-        ngayKhoiChieu: value,
+        ngayKhoiChieu: finalDateStr,
         dangChieu: !isFuture,
         sapChieu: isFuture,
       }));
@@ -208,6 +212,7 @@ export default function MovieFormModal({
                     min={todayStr}
                     value={formData.ngayKhoiChieu}
                     onChange={handleChange}
+                    onKeyDown={(e) => e.preventDefault()}
                     onClick={(e) => {
                       if (e.target.showPicker) {
                         try {
