@@ -97,7 +97,8 @@ export default function AdminMoviePage() {
   };
 
   /**
-  // Hàm chuyển đổi ngày sang định dạng dd/MM/yyyy chuẩn CyberSoft API
+   * Hàm chuyển đổi ngày sang định dạng dd/MM/yyyy chuẩn CyberSoft API
+   */
   const formatToDDMMYYYY = (dateStr) => {
     if (!dateStr) return dayjs().format("DD/MM/YYYY");
     const str = String(dateStr).trim();
@@ -126,48 +127,54 @@ export default function AdminMoviePage() {
     // Định dạng ngày khởi chiếu sang DD/MM/YYYY theo đúng chuẩn API CyberSoft
     const formattedDate = formatToDDMMYYYY(formData.ngayKhoiChieu);
 
-    // Tạo biDanh chuẩn từ tên phim
-    const biDanhStr = formData.tenPhim
+    // Tạo biDanh độc nhất (đính kèm maPhim hoặc timestamp) để không bị đụng hàng biDanh với bất kỳ phim nào khác trên DB CyberSoft
+    const slugBase = formData.tenPhim
       ? formData.tenPhim
           .toLowerCase()
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9]/g, "-")
-      : "";
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "")
+      : "movie";
+    const biDanhStr = `${slugBase}-${isEditMode && selectedMovieForEdit ? selectedMovieForEdit.maPhim : Date.now()}`;
 
     if (isEditMode && selectedMovieForEdit) {
       formDataObj.append("maPhim", selectedMovieForEdit.maPhim);
-      formDataObj.append("MaPhim", selectedMovieForEdit.maPhim);
     }
-    formDataObj.append("tenPhim", formData.tenPhim);
-    formDataObj.append("TenPhim", formData.tenPhim);
+    formDataObj.append("tenPhim", formData.tenPhim.trim());
     formDataObj.append("biDanh", biDanhStr);
-    formDataObj.append("BiDanh", biDanhStr);
     formDataObj.append("trailer", formData.trailer || "");
     formDataObj.append("moTa", formData.moTa || "");
     formDataObj.append("ngayKhoiChieu", formattedDate);
-    formDataObj.append("NgayKhoiChieu", formattedDate);
     formDataObj.append("dangChieu", formData.dangChieu);
     formDataObj.append("sapChieu", formData.sapChieu);
     formDataObj.append("hot", formData.hot);
     formDataObj.append("danhGia", formData.danhGia || 10);
     formDataObj.append("maNhom", import.meta.env.VITE_MA_NHOM || "GP01");
-    formDataObj.append("hinhAnh", formData.hinhAnh || "");
 
     if (formData.fileImage) {
-      formDataObj.append("File", formData.fileImage, formData.fileImage.name);
-    } else {
-      // Tạo 1 File hợp lệ làm fallback khi sửa phim mà không chọn lại poster mới (tránh lỗi thiếu File của API CyberSoft)
-      const base64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
-      const byteString = atob(base64.split(",")[1]);
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      const blob = new Blob([ab], { type: "image/png" });
-      const dummyFile = new File([blob], "poster_default.png", { type: "image/png" });
-      formDataObj.append("File", dummyFile, dummyFile.name);
+      // Làm sạch tên file và extension về dạng lowercase chuẩn (jpg, png, gif) để tránh CyberSoft API báo lỗi "Upload file không thành công!"
+      const originalName = formData.fileImage.name || "poster.png";
+      const rawExt = originalName.includes(".") ? originalName.split(".").pop().toLowerCase() : "png";
+      const ext = rawExt === "jpeg" ? "jpg" : rawExt;
+      const nameWithoutExt = originalName.includes(".")
+        ? originalName.substring(0, originalName.lastIndexOf("."))
+        : originalName;
+      const cleanBase = nameWithoutExt
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "_");
+      const safeFileName = `${cleanBase}_${Date.now()}.${ext}`;
+
+      const renamedFile = new File([formData.fileImage], safeFileName, {
+        type: formData.fileImage.type || `image/${ext}`,
+      });
+      formDataObj.append("File", renamedFile, safeFileName);
+    } else if (formData.hinhAnh) {
+      // Khi không chọn file ảnh mới (chỉ sửa ngày chiếu/thông tin), chỉ gửi hinhAnh string cũ để CyberSoft API giữ nguyên poster
+      formDataObj.append("hinhAnh", formData.hinhAnh);
     }
 
     if (isEditMode) {
@@ -292,6 +299,7 @@ export default function AdminMoviePage() {
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}
         initialData={selectedMovieForEdit}
+        existingMovies={movies}
         onSubmitSuccess={handleFormSubmitSuccess}
       />
 

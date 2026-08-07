@@ -40,10 +40,10 @@ export const actAddMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return response.data.content;
     } catch (error) {
+      const rawError = error.response?.data;
       const errorMsg =
-        error.response?.data?.content ||
-        error.response?.data?.message ||
-        "Thêm phim thất bại. Tên phim có thể đã tồn tại!";
+        (typeof rawError === "string" ? rawError : rawError?.content || rawError?.message) ||
+        "Thêm phim thất bại. Vui lòng kiểm tra lại thông tin.";
       return rejectWithValue(errorMsg);
     }
   }
@@ -62,10 +62,14 @@ export const actUpdateMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return response.data.content;
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.content ||
-        error.response?.data?.message ||
+      const rawError = error.response?.data;
+      let errorMsg =
+        (typeof rawError === "string" ? rawError : rawError?.content || rawError?.message) ||
         "Cập nhật phim thất bại. Vui lòng kiểm tra lại thông tin.";
+      if (typeof errorMsg === "string" && errorMsg.includes("Phim này không thể bị xóa")) {
+        errorMsg =
+          "Phim mẫu mặc định của hệ thống CyberSoft đã bị khóa bảo vệ (Read-Only), không thể chỉnh sửa hoặc xóa! Vui lòng bấm 'Sửa' các phim do bạn tự thêm mới.";
+      }
       return rejectWithValue(errorMsg);
     }
   }

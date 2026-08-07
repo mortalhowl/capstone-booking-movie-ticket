@@ -5,7 +5,7 @@ import axios from "axios";
  * Kết nối đến API CyberSoft Movie
  */
 const api = axios.create({
-  baseURL: import.meta.env?.VITE_BASE_URL || "https://movienew.cybersoft.edu.vn/api/",
+  baseURL: import.meta.env?.VITE_BASE_URL || "/api/",
   timeout: 30000,
 });
 
@@ -16,8 +16,11 @@ const api = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
-    // Lấy thông tin user admin đăng nhập từ localStorage (kiểm tra cả USER_ADMIN và USER_DATA)
-    const userLocalStr = localStorage.getItem("USER_ADMIN") || localStorage.getItem("USER_DATA");
+    // Lấy thông tin user admin đăng nhập từ localStorage (kiểm tra các key lưu phổ biến)
+    const userLocalStr =
+      localStorage.getItem("USER_ADMIN") ||
+      localStorage.getItem("USER_DATA") ||
+      localStorage.getItem("USER_LOGIN");
     const userObj = userLocalStr ? JSON.parse(userLocalStr) : null;
     const accessToken = userObj?.accessToken || userObj?.token || "";
 

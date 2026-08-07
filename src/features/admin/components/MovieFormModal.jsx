@@ -6,6 +6,7 @@ export default function MovieFormModal({
   isOpen,
   onClose,
   initialData = null, // null for Add mode, movie object for Edit mode
+  existingMovies = [],
   onSubmitSuccess,
 }) {
   const isEditMode = Boolean(initialData && initialData.maPhim);
@@ -126,24 +127,79 @@ export default function MovieFormModal({
       return;
     }
 
+    // 1. Kiểm tra trùng tên phim (Chỉ trùng chính xác 100% tên mới thông báo lỗi)
+    if (existingMovies && existingMovies.length > 0) {
+      const inputName = formData.tenPhim.trim().toLowerCase();
+      const duplicate = existingMovies.some((m) => {
+        if (isEditMode && initialData?.maPhim && String(m.maPhim) === String(initialData.maPhim)) {
+          return false;
+        }
+        return m.tenPhim?.trim().toLowerCase() === inputName;
+      });
+
+      if (duplicate) {
+        alert(`Tên phim "${formData.tenPhim.trim()}" đã tồn tại trong hệ thống! Vui lòng nhập tên phim khác.`);
+        return;
+      }
+    }
+
     if (!formData.ngayKhoiChieu) {
       alert("Vui lòng chọn ngày khởi chiếu cho phim!");
       return;
     }
 
-    if (!isEditMode && formData.ngayKhoiChieu) {
+    // 2. Kiểm tra hình ảnh khi thêm phim mới
+    if (!isEditMode && !formData.fileImage && !formData.hinhAnh) {
+      alert("Vui lòng tải lên hình ảnh poster phim hoặc nhập đường dẫn URL hình ảnh!");
+      return;
+    }
+
+    // 3. Kiểm tra ngày khởi chiếu
+    if (formData.ngayKhoiChieu) {
       const selectedDate = dayjs(formData.ngayKhoiChieu).startOf("day");
       const today = dayjs().startOf("day");
-      if (selectedDate.isBefore(today)) {
-        alert("Khi thêm phim mới, không được chọn ngày khởi chiếu trong quá khứ!");
-        return;
+
+      if (!isEditMode) {
+        // Trường hợp Thêm phim mới: Không cho chọn ngày quá khứ
+        if (selectedDate.isBefore(today)) {
+          alert("Khi thêm phim mới, không được chọn ngày khởi chiếu trong quá khứ!");
+          return;
+        }
+      } else if (initialData) {
+        // Trường hợp Chỉnh sửa: Nếu đổi sang ngày chiếu MỚI trong quá khứ -> Không cho phép
+        let initialFormattedStr = "";
+        if (initialData.ngayKhoiChieu) {
+          const dateVal = String(initialData.ngayKhoiChieu);
+          if (dateVal.includes("/")) {
+            const parts = dateVal.split(" ")[0].split("/");
+            if (parts.length === 3) {
+              initialFormattedStr = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+            }
+          } else {
+            const parsed = dayjs(dateVal);
+            if (parsed.isValid()) {
+              initialFormattedStr = parsed.format("YYYY-MM-DD");
+            }
+          }
+        }
+
+        const isDateChanged = formData.ngayKhoiChieu !== initialFormattedStr;
+        if (isDateChanged && selectedDate.isBefore(today)) {
+          alert("Khi thay đổi ngày khởi chiếu, không được chọn ngày trong quá khứ!");
+          return;
+        }
       }
     }
 
-    if (onSubmitSuccess) {
-      onSubmitSuccess(formData, isEditMode);
+    try {
+      if (onSubmitSuccess) {
+        onSubmitSuccess(formData, isEditMode);
+      }
+    } catch (err) {
+      console.error("Lỗi khi gửi form phim:", err);
+    } finally {
+      onClose();
     }
-    onClose();
   };
 
   return (
@@ -223,7 +279,7 @@ export default function MovieFormModal({
                   <input
                     type="date"
                     name="ngayKhoiChieu"
-                    min={!isEditMode ? todayStr : undefined}
+                    min={todayStr}
                     value={formData.ngayKhoiChieu}
                     onChange={handleChange}
                     onKeyDown={(e) => e.preventDefault()}
