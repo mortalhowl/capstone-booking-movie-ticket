@@ -68,13 +68,24 @@ export default function MovieFormModal({
     }
   }, [initialData, isOpen]);
 
+  const minDateStr = dayjs().format("YYYY-MM-DD");
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let finalValue = type === "checkbox" ? checked : value;
+
+    // Không cho phép chọn ngày khởi chiếu ở quá khứ
+    if (name === "ngayKhoiChieu" && value) {
+      if (dayjs(value).isBefore(dayjs(), "day")) {
+        finalValue = minDateStr;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: finalValue,
     }));
   };
 
@@ -175,8 +186,10 @@ export default function MovieFormModal({
                   <input
                     type="date"
                     name="ngayKhoiChieu"
+                    min={minDateStr}
                     value={formData.ngayKhoiChieu}
                     onChange={handleChange}
+                    onKeyDown={(e) => e.preventDefault()}
                     onClick={(e) => {
                       if (e.target.showPicker) {
                         try {
