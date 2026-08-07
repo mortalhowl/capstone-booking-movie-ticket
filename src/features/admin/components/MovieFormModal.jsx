@@ -131,6 +131,15 @@ export default function MovieFormModal({
       return;
     }
 
+    if (!isEditMode && formData.ngayKhoiChieu) {
+      const selectedDate = dayjs(formData.ngayKhoiChieu).startOf("day");
+      const today = dayjs().startOf("day");
+      if (selectedDate.isBefore(today)) {
+        alert("Khi thêm phim mới, không được chọn ngày khởi chiếu trong quá khứ!");
+        return;
+      }
+    }
+
     if (onSubmitSuccess) {
       onSubmitSuccess(formData, isEditMode);
     }
@@ -214,6 +223,7 @@ export default function MovieFormModal({
                   <input
                     type="date"
                     name="ngayKhoiChieu"
+                    min={!isEditMode ? todayStr : undefined}
                     value={formData.ngayKhoiChieu}
                     onChange={handleChange}
                     onKeyDown={(e) => e.preventDefault()}

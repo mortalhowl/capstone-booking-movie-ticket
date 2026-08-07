@@ -97,15 +97,34 @@ export default function AdminMoviePage() {
   };
 
   /**
+  // Hàm chuyển đổi ngày sang định dạng dd/MM/yyyy chuẩn CyberSoft API
+  const formatToDDMMYYYY = (dateStr) => {
+    if (!dateStr) return dayjs().format("DD/MM/YYYY");
+    const str = String(dateStr).trim();
+    if (str.includes("/")) {
+      const parts = str.split(" ")[0].split("/");
+      if (parts.length === 3) {
+        return `${parts[0].padStart(2, "0")}/${parts[1].padStart(2, "0")}/${parts[2]}`;
+      }
+    }
+    if (str.includes("-")) {
+      const parts = str.split(" ")[0].split("-");
+      if (parts.length === 3) {
+        return `${parts[2].padStart(2, "0")}/${parts[1].padStart(2, "0")}/${parts[0]}`;
+      }
+    }
+    const dObj = dayjs(dateStr);
+    return dObj.isValid() ? dObj.format("DD/MM/YYYY") : dayjs().format("DD/MM/YYYY");
+  };
+
+  /**
    * 5. Xử lý khi Submit Form Thêm hoặc Sửa Phim (Đóng gói FormData gửi trực tiếp lên API)
    */
   const handleFormSubmitSuccess = (formData, isEditMode) => {
     const formDataObj = new FormData();
 
     // Định dạng ngày khởi chiếu sang DD/MM/YYYY theo đúng chuẩn API CyberSoft
-    const formattedDate = formData.ngayKhoiChieu
-      ? dayjs(formData.ngayKhoiChieu).format("DD/MM/YYYY")
-      : dayjs().format("DD/MM/YYYY");
+    const formattedDate = formatToDDMMYYYY(formData.ngayKhoiChieu);
 
     // Tạo biDanh chuẩn từ tên phim
     const biDanhStr = formData.tenPhim
