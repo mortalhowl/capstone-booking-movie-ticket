@@ -33,9 +33,17 @@ export default function MovieFormModal({
       // Chuyển đổi ngày về dạng YYYY-MM-DD để thẻ <input type="date"> hiển thị chuẩn
       let formattedDateStr = "";
       if (initialData.ngayKhoiChieu) {
-        const parsed = dayjs(initialData.ngayKhoiChieu);
-        if (parsed.isValid()) {
-          formattedDateStr = parsed.format("YYYY-MM-DD");
+        const dateVal = String(initialData.ngayKhoiChieu);
+        if (dateVal.includes("/")) {
+          const parts = dateVal.split(" ")[0].split("/");
+          if (parts.length === 3) {
+            formattedDateStr = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+          }
+        } else {
+          const parsed = dayjs(dateVal);
+          if (parsed.isValid()) {
+            formattedDateStr = parsed.format("YYYY-MM-DD");
+          }
         }
       }
 

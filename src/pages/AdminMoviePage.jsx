@@ -118,18 +118,21 @@ export default function AdminMoviePage() {
 
     if (isEditMode && selectedMovieForEdit) {
       formDataObj.append("maPhim", selectedMovieForEdit.maPhim);
+      formDataObj.append("MaPhim", selectedMovieForEdit.maPhim);
     }
     formDataObj.append("tenPhim", formData.tenPhim);
+    formDataObj.append("TenPhim", formData.tenPhim);
     formDataObj.append("biDanh", biDanhStr);
+    formDataObj.append("BiDanh", biDanhStr);
     formDataObj.append("trailer", formData.trailer || "");
     formDataObj.append("moTa", formData.moTa || "");
     formDataObj.append("ngayKhoiChieu", formattedDate);
+    formDataObj.append("NgayKhoiChieu", formattedDate);
     formDataObj.append("dangChieu", formData.dangChieu);
     formDataObj.append("sapChieu", formData.sapChieu);
     formDataObj.append("hot", formData.hot);
     formDataObj.append("danhGia", formData.danhGia || 10);
     formDataObj.append("maNhom", import.meta.env.VITE_MA_NHOM || "GP01");
-
     formDataObj.append("hinhAnh", formData.hinhAnh || "");
 
     if (formData.fileImage) {
