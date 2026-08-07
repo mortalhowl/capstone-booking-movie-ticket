@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Film, Lock, User, LogIn, AlertCircle, ShieldCheck } from "lucide-react";
 import { loginServices, logoutUser } from "@/features/auth/authSlice";
+import { LoginForm } from "@/features/auth";
+import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function LoginPage() {
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith("/admin");
+
   const [taiKhoan, setTaiKhoan] = useState("");
   const [matKhau, setMatKhau] = useState("");
   const [localError, setLocalError] = useState("");
@@ -13,8 +18,13 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
+  useEffect(() => {
+    scrollToTop();
+  }, []);
+
   // TỰ ĐỘNG CHUYỂN VỀ /admin NẾU ĐÃ ĐĂNG NHẬP ADMIN RỒI
   useEffect(() => {
+    if (!isAdminPath) return;
     const localUserStr = localStorage.getItem("USER_DATA");
     if (localUserStr) {
       try {
@@ -26,7 +36,7 @@ export default function LoginPage() {
         console.error("Invalid USER_DATA in localStorage", e);
       }
     }
-  }, [navigate]);
+  }, [navigate, isAdminPath]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,37 +54,41 @@ export default function LoginPage() {
         actionResult.payload ||
         "Tài khoản hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!";
       setLocalError(errorMsg);
-      setMatKhau(""); // XÓA SẠCH MẬT KHẨU SAI, GIỮ NGUYÊN TÀI KHẢOẢN CỦA NGƯỜI DÙNG
+      setMatKhau("");
       return;
     }
 
     if (loginServices.fulfilled.match(actionResult)) {
       const user = actionResult.payload;
 
-      // KIỂM TRA PHÂN QUYỀN ADMIN: Loại tài khoản phải là "QuanTri"
       if (!user || user.maLoaiNguoiDung !== "QuanTri") {
         dispatch(logoutUser());
         setLocalError(
           "Tài khoản của bạn là Khách Hàng. Bạn không có quyền truy cập vào hệ thống Quản Trị (Admin)!"
         );
-        setMatKhau(""); // Xóa mật khẩu
+        setMatKhau("");
         return;
       }
 
-      // Đăng nhập thành công với quyền Admin -> Lưu vào localStorage & chuyển hướng vào /admin
       localStorage.setItem("USER_DATA", JSON.stringify(user));
       navigate("/admin");
     }
   };
 
+  if (!isAdminPath) {
+    return (
+      <div className="min-h-[85vh] flex items-center justify-center bg-gray-50 px-4 py-12">
+        <LoginForm />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Background Decorative Gradients */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10">
-        {/* Brand Header */}
         <div className="text-center space-y-3 mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
             <Film className="w-7 h-7" />
@@ -88,7 +102,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Local Error Alert */}
         {(localError || error) && (
           <div className="mb-6 bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 flex items-start space-x-3 text-rose-400 text-xs">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -96,9 +109,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Input Tài Khoản */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
               Tài Khoản Admin
@@ -118,7 +129,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Input Mật Khẩu */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
               Mật Khẩu
@@ -138,7 +148,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -155,7 +164,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Footer info */}
         <div className="mt-8 text-center border-t border-slate-800/80 pt-4">
           <p className="text-[11px] text-slate-500">
             Trang đăng nhập dành riêng cho Ban Quản Trị Hệ Thống.

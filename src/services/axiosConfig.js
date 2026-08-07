@@ -5,20 +5,25 @@ export const api = axios.create({
   timeout: 50000,
 });
 
-api.interceptors.request.use((config) => {
-  const localUserStr = localStorage.getItem("USER_DATA");
-  const user = localUserStr ? JSON.parse(localUserStr) : null;
+api.interceptors.request.use(
+  (config) => {
+    const localUserStr = localStorage.getItem("USER_DATA");
+    const user = localUserStr ? JSON.parse(localUserStr) : null;
 
-  config.headers = {
-    ...config.headers,
-    TokenCybersoft: import.meta.env.VITE_TOKEN_CYBERSOFT,
-  };
+    config.headers = {
+      ...config.headers,
+      TokenCybersoft: import.meta.env.VITE_TOKEN_CYBERSOFT,
+    };
 
-  if (user?.accessToken) {
-    config.headers.Authorization = `Bearer ${user.accessToken}`;
-  } else {
-    delete config.headers.Authorization;
+    if (user?.accessToken) {
+      config.headers.Authorization = `Bearer ${user.accessToken}`;
+    } else {
+      delete config.headers.Authorization;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-
-  return config;
-});
+);

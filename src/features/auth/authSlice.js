@@ -19,19 +19,15 @@ export const loginServices = createAsyncThunk(
       const userInfo = data.content;
       return userInfo;
     } catch (error) {
-      let errorMsg = "Tài khoản hoặc mật khẩu không chính xác!";
-      if (error.response?.data) {
-        if (typeof error.response.data.content === "string") {
-          errorMsg = error.response.data.content;
-        } else if (typeof error.response.data === "string") {
-          errorMsg = error.response.data;
-        } else if (error.response.data.message) {
-          errorMsg = error.response.data.message;
-        }
-      }
+      let errorMsg =
+        error.response?.data?.content ||
+        (typeof error.response?.data === "string" ? error.response.data : null) ||
+        error.response?.data?.message ||
+        error.message ||
+        "Tài khoản hoặc mật khẩu không chính xác!";
       return thunkAPI.rejectWithValue(errorMsg);
     }
-  },
+  }
 );
 
 export const registerServices = createAsyncThunk(
@@ -41,9 +37,11 @@ export const registerServices = createAsyncThunk(
       const { data } = await registerApi(body);
       return data.content;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.content || error.message || "Đăng ký thất bại"
+      );
     }
-  },
+  }
 );
 
 export const getUserProfileServices = createAsyncThunk(
@@ -53,9 +51,13 @@ export const getUserProfileServices = createAsyncThunk(
       const { data } = await getUserProfileApi();
       return data.content;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.content ||
+          error.message ||
+          "Lấy thông tin tài khoản thất bại"
+      );
     }
-  },
+  }
 );
 
 export const updateUserProfileServices = createAsyncThunk(
@@ -63,11 +65,15 @@ export const updateUserProfileServices = createAsyncThunk(
   async (body, thunkAPI) => {
     try {
       const { data } = await updateUserProfileApi(body);
-      return data.content;
+      return data.content || body;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.content ||
+          error.message ||
+          "Cập nhật thông tin thất bại"
+      );
     }
-  },
+  }
 );
 
 const initialState = {
@@ -132,8 +138,16 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateUserProfileServices.fulfilled, (state) => {
+      .addCase(updateUserProfileServices.fulfilled, (state, action) => {
         state.loading = false;
+        if (action.payload) {
+          state.userInfo = { ...state.userInfo, ...action.payload };
+          if (state.data) {
+            const updatedData = { ...state.data, ...action.payload };
+            state.data = updatedData;
+            localStorage.setItem("USER_DATA", JSON.stringify(updatedData));
+          }
+        }
       })
       .addCase(updateUserProfileServices.rejected, (state, action) => {
         state.loading = false;
