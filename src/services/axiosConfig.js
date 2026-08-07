@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL || "https://movienew.cybersoft.edu.vn/api/",
+  baseURL: import.meta.env.VITE_BASE_URL,
   timeout: 50000,
 });
 
@@ -11,9 +11,7 @@ api.interceptors.request.use((config) => {
 
   config.headers = {
     ...config.headers,
-    TokenCybersoft:
-      import.meta.env.VITE_TOKEN_CYBERSOFT ||
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5Mb3AiOiJCb290Y2FtcCA5NCIsIkhldEhhblN0cmluZyI6IjEzLzAxLzIwMjciLCJIZXRIYW5UaW1lIjoiMTc5OTc5ODQwMDAwMCIsIm5iZiI6MTc3MjY0MzYwMCwiZXhwIjoxNzk5OTQ2MDAwfQ.fXnFWdTzELVYga9S7pakEljJsvLiA3qz1XvvVCzlxkI",
+    TokenCybersoft: import.meta.env.VITE_TOKEN_CYBERSOFT,
   };
 
   if (user?.accessToken) {
