@@ -201,19 +201,20 @@ export default function UserListTable({
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-        <span className="text-xs text-slate-400">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-800/80 text-xs text-slate-400">
+        <span>
           Hiển thị{" "}
-          <strong className="text-slate-200">
+          <span className="font-semibold text-slate-200">
             {currentUsers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
-          </strong>{" "}
+          </span>{" "}
           -{" "}
-          <strong className="text-slate-200">
+          <span className="font-semibold text-slate-200">
             {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
-          </strong>{" "}
-          trên tổng số <strong className="text-slate-200">{filteredUsers.length}</strong> tài khoản
+          </span>{" "}
+          trên tổng số <span className="font-semibold text-slate-200">{filteredUsers.length}</span> tài khoản
         </span>
 
+        {/* Thanh chuyển trang */}
         <div className="flex items-center space-x-2">
           <button
             disabled={currentPage === 1}
@@ -222,9 +223,32 @@ export default function UserListTable({
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 text-slate-300 border border-slate-800">
-            Trang {currentPage} / {totalPages}
-          </span>
+
+          <div className="flex items-center space-x-1 px-1">
+            {(() => {
+              const maxVisible = 5;
+              let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+              let end = start + maxVisible - 1;
+              if (end > totalPages) {
+                end = totalPages;
+                start = Math.max(1, end - maxVisible + 1);
+              }
+              return Array.from({ length: end - start + 1 }, (_, i) => start + i).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg font-semibold text-xs transition-all ${
+                    currentPage === pageNum
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                      : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ));
+            })()}
+          </div>
+
           <button
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
