@@ -339,19 +339,28 @@ export default function MovieListTable({
           </button>
 
           <div className="flex items-center space-x-1 px-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-              <button
-                key={pageNum}
-                onClick={() => handlePageChange(pageNum)}
-                className={`w-8 h-8 rounded-lg font-semibold text-xs transition-all ${
-                  safeCurrentPage === pageNum
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                    : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
-                }`}
-              >
-                {pageNum}
-              </button>
-            ))}
+            {(() => {
+              const maxVisible = 5;
+              let start = Math.max(1, safeCurrentPage - Math.floor(maxVisible / 2));
+              let end = start + maxVisible - 1;
+              if (end > totalPages) {
+                end = totalPages;
+                start = Math.max(1, end - maxVisible + 1);
+              }
+              return Array.from({ length: end - start + 1 }, (_, i) => start + i).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`w-8 h-8 rounded-lg font-semibold text-xs transition-all ${
+                    safeCurrentPage === pageNum
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                      : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ));
+            })()}
           </div>
 
           <button
