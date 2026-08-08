@@ -40,7 +40,11 @@ export const actAddMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return response.data.content;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Thêm phim thất bại");
+      const rawError = error.response?.data;
+      const errorMsg =
+        (typeof rawError === "string" ? rawError : rawError?.content || rawError?.message) ||
+        "Thêm phim thất bại. Vui lòng kiểm tra lại thông tin.";
+      return rejectWithValue(errorMsg);
     }
   }
 );
@@ -58,7 +62,15 @@ export const actUpdateMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return response.data.content;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Cập nhật phim thất bại");
+      const rawError = error.response?.data;
+      let errorMsg =
+        (typeof rawError === "string" ? rawError : rawError?.content || rawError?.message) ||
+        "Cập nhật phim thất bại. Vui lòng kiểm tra lại thông tin.";
+      if (typeof errorMsg === "string" && errorMsg.includes("Phim này không thể bị xóa")) {
+        errorMsg =
+          "Phim mẫu mặc định của hệ thống CyberSoft đã bị khóa bảo vệ (Read-Only), không thể chỉnh sửa hoặc xóa! Vui lòng bấm 'Sửa' các phim do bạn tự thêm mới.";
+      }
+      return rejectWithValue(errorMsg);
     }
   }
 );
@@ -76,7 +88,11 @@ export const actDeleteMovie = createAsyncThunk(
       dispatch(fetchListMovie());
       return maPhim;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Xóa phim thất bại");
+      const errorMsg =
+        error.response?.data?.content ||
+        error.response?.data?.message ||
+        "Xóa phim thất bại. Phim có thể đã được tạo lịch chiếu hoặc không thuộc nhóm bạn quản lý.";
+      return rejectWithValue(errorMsg);
     }
   }
 );
@@ -92,7 +108,11 @@ export const actCreateShowtime = createAsyncThunk(
       const response = await api.post("QuanLyDatVe/TaoLichChieu", showtimeData);
       return response.data.content;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Tạo lịch chiếu thất bại");
+      const rawError = error.response?.data;
+      const errorMsg =
+        (typeof rawError === "string" ? rawError : rawError?.content || rawError?.message) ||
+        "Tạo lịch chiếu thất bại. Vui lòng kiểm tra lại thông tin.";
+      return rejectWithValue(errorMsg);
     }
   }
 );

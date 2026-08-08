@@ -97,27 +97,52 @@ export default function AdminMoviePage() {
   };
 
   /**
+   * Hàm chuyển đổi ngày sang định dạng dd/MM/yyyy chuẩn CyberSoft API
+   */
+  const formatToDDMMYYYY = (dateStr) => {
+    if (!dateStr) return dayjs().format("DD/MM/YYYY");
+    const str = String(dateStr).trim();
+    if (str.includes("/")) {
+      const parts = str.split(" ")[0].split("/");
+      if (parts.length === 3) {
+        return `${parts[0].padStart(2, "0")}/${parts[1].padStart(2, "0")}/${parts[2]}`;
+      }
+    }
+    if (str.includes("-")) {
+      const parts = str.split(" ")[0].split("-");
+      if (parts.length === 3) {
+        return `${parts[2].padStart(2, "0")}/${parts[1].padStart(2, "0")}/${parts[0]}`;
+      }
+    }
+    const dObj = dayjs(dateStr);
+    return dObj.isValid() ? dObj.format("DD/MM/YYYY") : dayjs().format("DD/MM/YYYY");
+  };
+
+  /**
    * 5. Xử lý khi Submit Form Thêm hoặc Sửa Phim (Đóng gói FormData gửi trực tiếp lên API)
    */
   const handleFormSubmitSuccess = (formData, isEditMode) => {
     const formDataObj = new FormData();
 
     // Định dạng ngày khởi chiếu sang DD/MM/YYYY theo đúng chuẩn API CyberSoft
-    const formattedDate = formData.ngayKhoiChieu
-      ? dayjs(formData.ngayKhoiChieu).format("DD/MM/YYYY")
-      : dayjs().format("DD/MM/YYYY");
+    const formattedDate = formatToDDMMYYYY(formData.ngayKhoiChieu);
 
-    // Tạo biDanh chuẩn từ tên phim
-    const biDanhStr = formData.tenPhim
+    // Tạo biDanh độc nhất (đính kèm maPhim hoặc timestamp) để không bị đụng hàng biDanh với bất kỳ phim nào khác trên DB CyberSoft
+    const slugBase = formData.tenPhim
       ? formData.tenPhim
           .toLowerCase()
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9]/g, "-")
-      : "";
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "")
+      : "movie";
+    const biDanhStr = `${slugBase}-${isEditMode && selectedMovieForEdit ? selectedMovieForEdit.maPhim : Date.now()}`;
 
-    formDataObj.append("maPhim", isEditMode && selectedMovieForEdit ? selectedMovieForEdit.maPhim : 0);
-    formDataObj.append("tenPhim", formData.tenPhim);
+    if (isEditMode && selectedMovieForEdit) {
+      formDataObj.append("maPhim", selectedMovieForEdit.maPhim);
+    }
+    formDataObj.append("tenPhim", formData.tenPhim.trim());
     formDataObj.append("biDanh", biDanhStr);
     formDataObj.append("trailer", formData.trailer || "");
     formDataObj.append("moTa", formData.moTa || "");
@@ -129,7 +154,27 @@ export default function AdminMoviePage() {
     formDataObj.append("maNhom", import.meta.env.VITE_MA_NHOM || "GP01");
 
     if (formData.fileImage) {
-      formDataObj.append("File", formData.fileImage, formData.fileImage.name);
+      // Làm sạch tên file và extension về dạng lowercase chuẩn (jpg, png, gif) để tránh CyberSoft API báo lỗi "Upload file không thành công!"
+      const originalName = formData.fileImage.name || "poster.png";
+      const rawExt = originalName.includes(".") ? originalName.split(".").pop().toLowerCase() : "png";
+      const ext = rawExt === "jpeg" ? "jpg" : rawExt;
+      const nameWithoutExt = originalName.includes(".")
+        ? originalName.substring(0, originalName.lastIndexOf("."))
+        : originalName;
+      const cleanBase = nameWithoutExt
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "_");
+      const safeFileName = `${cleanBase}_${Date.now()}.${ext}`;
+
+      const renamedFile = new File([formData.fileImage], safeFileName, {
+        type: formData.fileImage.type || `image/${ext}`,
+      });
+      formDataObj.append("File", renamedFile, safeFileName);
+    } else if (formData.hinhAnh) {
+      // Khi không chọn file ảnh mới (chỉ sửa ngày chiếu/thông tin), chỉ gửi hinhAnh string cũ để CyberSoft API giữ nguyên poster
+      formDataObj.append("hinhAnh", formData.hinhAnh);
     }
 
     if (isEditMode) {
@@ -254,6 +299,7 @@ export default function AdminMoviePage() {
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}
         initialData={selectedMovieForEdit}
+        existingMovies={movies}
         onSubmitSuccess={handleFormSubmitSuccess}
       />
 

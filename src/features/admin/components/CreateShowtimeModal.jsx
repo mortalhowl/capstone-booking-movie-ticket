@@ -102,6 +102,7 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, moviesList
 
   const handleCumRapChange = (maCumRap) => {
     setSelectedCumRap(maCumRap);
+    setSelectedRap("");
   };
 
   if (!isOpen) return null;
@@ -128,7 +129,7 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, moviesList
     setFormError("");
 
     if (!selectedRap) {
-      setFormError("Vui lòng chọn rạp chiếu!");
+      setFormError("Vui lòng chọn cụm rạp và phòng rạp hợp lệ!");
       return;
     }
 
@@ -155,7 +156,7 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, moviesList
     const payload = {
       maPhim: Number(activeMovie.maPhim),
       ngayChieuGioChieu: formattedDate,
-      maRap: selectedCumRap || selectedRap, // API CyberSoft yêu cầu truyền Mã Cụm Rạp (chuỗi maCumRap như 'bhd-star-cineplex-3-2') vào tham số maRap
+      maRap: selectedCumRap, // API CyberSoft TaoLichChieu nhận maCumRap (slug cụm rạp như 'bhd-star-cineplex-3-2') vào field maRap
       giaVe: Number(giaVe),
     };
 
@@ -295,32 +296,15 @@ export default function CreateShowtimeModal({ isOpen, onClose, movie, moviesList
             )}
           </div>
 
-          {/* Chọn Phòng Rạp Chiếu */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-              <span>Phòng Rạp Chiếu (Mã Rạp)</span>
-              {rapList.length > 0 && (
-                <span className="text-[10px] text-slate-400 font-mono">
-                  {rapList.length} phòng
-                </span>
-              )}
-            </label>
-            {rapList.length === 0 ? (
-              <p className="text-xs text-amber-400">Không tìm thấy phòng rạp.</p>
-            ) : (
-              <select
-                name="maRap"
-                value={selectedRap}
-                onChange={(e) => setSelectedRap(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
-              >
-                {rapList.map((r) => (
-                  <option key={r.maRap} value={r.maRap}>
-                    {r.tenRap} — Mã rạp: #{r.maRap}
-                  </option>
-                ))}
-              </select>
-            )}
+          {/* Phòng Rạp — CyberSoft tự gán, không thể chọn thủ công */}
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl px-4 py-3 flex items-start gap-2.5">
+            <span className="text-amber-400 text-sm mt-0.5">⚠️</span>
+            <div>
+              <p className="text-[11px] font-semibold text-amber-300 mb-0.5">Phòng chiếu do hệ thống tự gán</p>
+              <p className="text-[10px] text-amber-400/70 leading-relaxed">
+                API CyberSoft chỉ nhận Cụm Rạp và tự động phân phòng chiếu. Không thể chọn phòng cụ thể từ giao diện.
+              </p>
+            </div>
           </div>
 
           {/* Ngày chiếu */}

@@ -316,7 +316,7 @@ export default function AdminShowtimePage() {
     const payload = {
       maPhim: Number(selectedMovieId),
       ngayChieuGioChieu: formattedDate,
-      maRap: selectedCumRap || selectedRap, // API CyberSoft yêu cầu truyền Mã Cụm Rạp (chuỗi maCumRap như 'bhd-star-cineplex-3-2') vào tham số maRap
+      maRap: selectedCumRap, // API CyberSoft TaoLichChieu nhận maCumRap (slug cụm rạp như 'bhd-star-cineplex-3-2') vào field maRap
       giaVe: Number(giaVe),
     };
 
@@ -718,67 +718,38 @@ export default function AdminShowtimePage() {
                 )}
               </div>
 
-              {/* 3 & 4. Cụm Rạp & Phòng Rạp */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 3. Cụm Rạp */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span className="flex items-center space-x-1.5">
-                      <MapPin className="w-4 h-4 text-indigo-400" />
-                      <span>3. Cụm Rạp (Địa Điểm)</span>
+              {/* 3. Cụm Rạp — full width (CyberSoft tự gán phòng) */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+                  <span className="flex items-center space-x-1.5">
+                    <MapPin className="w-4 h-4 text-indigo-400" />
+                    <span>3. Cụm Rạp (Địa Điểm)</span>
+                  </span>
+                  {cumRapList.length > 0 && (
+                    <span className="text-[10px] font-mono text-indigo-400">
+                      {cumRapList.length} cụm rạp
                     </span>
-                    {cumRapList.length > 0 && (
-                      <span className="text-[10px] font-mono text-indigo-400">
-                        {cumRapList.length} cụm rạp
-                      </span>
-                    )}
-                  </label>
-                  {loadingCumRap ? (
-                    <div className="flex items-center space-x-2 text-xs text-indigo-400 py-3">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Đang tải cụm rạp...</span>
-                    </div>
-                  ) : (
-                    <select
-                      value={selectedCumRap}
-                      onChange={(e) => setSelectedCumRap(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors font-medium truncate"
-                    >
-                      {cumRapList.map((c) => (
-                        <option key={c.maCumRap} value={c.maCumRap}>
-                          {c.tenCumRap} — {c.diaChi}
-                        </option>
-                      ))}
-                    </select>
                   )}
-                </div>
-
-                {/* 4. Phòng Rạp */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span className="flex items-center space-x-1.5">
-                      <Building2 className="w-4 h-4 text-indigo-400" />
-                      <span>4. Phòng Rạp (Mã Rạp)</span>
-                    </span>
-                    {rapList.length > 0 && (
-                      <span className="text-[10px] font-mono text-indigo-400">
-                        {rapList.length} phòng
-                      </span>
-                    )}
-                  </label>
+                </label>
+                {loadingCumRap ? (
+                  <div className="flex items-center space-x-2 text-xs text-indigo-400 py-3">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Đang tải cụm rạp...</span>
+                  </div>
+                ) : (
                   <select
-                    value={selectedRap}
-                    onChange={(e) => setSelectedRap(e.target.value)}
-                    disabled={rapList.length === 0}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors font-medium disabled:opacity-50"
+                    value={selectedCumRap}
+                    onChange={(e) => setSelectedCumRap(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors font-medium truncate"
                   >
-                    {rapList.map((r) => (
-                      <option key={r.maRap} value={r.maRap}>
-                        {r.tenRap} — Mã rạp: #{r.maRap}
+                    {cumRapList.map((c) => (
+                      <option key={c.maCumRap} value={c.maCumRap}>
+                        {c.tenCumRap} — {c.diaChi}
                       </option>
                     ))}
                   </select>
-                </div>
+                )}
+
               </div>
 
               {/* 5. Chọn Ngày Chiếu */}

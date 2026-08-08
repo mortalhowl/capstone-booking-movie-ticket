@@ -6,6 +6,7 @@ export default function MovieFormModal({
   isOpen,
   onClose,
   initialData = null, // null for Add mode, movie object for Edit mode
+  existingMovies = [],
   onSubmitSuccess,
 }) {
   const isEditMode = Boolean(initialData && initialData.maPhim);
@@ -27,23 +28,36 @@ export default function MovieFormModal({
 
   // Sync initialData khi Edit hoặc Reset khi Thêm mới
   useEffect(() => {
+    const today = dayjs().startOf("day");
+
     if (initialData) {
       // Chuyển đổi ngày về dạng YYYY-MM-DD để thẻ <input type="date"> hiển thị chuẩn
       let formattedDateStr = "";
       if (initialData.ngayKhoiChieu) {
-        const parsed = dayjs(initialData.ngayKhoiChieu);
-        if (parsed.isValid()) {
-          formattedDateStr = parsed.format("YYYY-MM-DD");
+        const dateVal = String(initialData.ngayKhoiChieu);
+        if (dateVal.includes("/")) {
+          const parts = dateVal.split(" ")[0].split("/");
+          if (parts.length === 3) {
+            formattedDateStr = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+          }
+        } else {
+          const parsed = dayjs(dateVal);
+          if (parsed.isValid()) {
+            formattedDateStr = parsed.format("YYYY-MM-DD");
+          }
         }
       }
+
+      // Tự động tính: Nếu ngày khởi chiếu ở tương lai -> Sắp chiếu, ngược lại -> Đang chiếu
+      const isFuture = formattedDateStr ? dayjs(formattedDateStr).startOf("day").isAfter(today) : false;
 
       setFormData({
         tenPhim: initialData.tenPhim || "",
         trailer: initialData.trailer || "",
         moTa: initialData.moTa || "",
         ngayKhoiChieu: formattedDateStr,
-        dangChieu: initialData.dangChieu ?? true,
-        sapChieu: initialData.sapChieu ?? false,
+        dangChieu: !isFuture,
+        sapChieu: isFuture,
         hot: initialData.hot ?? false,
         danhGia: initialData.danhGia || 8,
         hinhAnh: initialData.hinhAnh || "",
@@ -51,12 +65,13 @@ export default function MovieFormModal({
       });
       setPreviewImage(initialData.hinhAnh || "");
     } else {
-      // Reset form cho chế độ Thêm phim (Mặc định lấy ngày hôm nay)
+      const todayStr = dayjs().format("YYYY-MM-DD");
+      // Reset form cho chế độ Thêm phim (Mặc định ngày hôm nay -> Đang chiếu)
       setFormData({
         tenPhim: "",
         trailer: "",
         moTa: "",
-        ngayKhoiChieu: dayjs().format("YYYY-MM-DD"),
+        ngayKhoiChieu: todayStr,
         dangChieu: true,
         sapChieu: false,
         hot: false,
@@ -74,19 +89,24 @@ export default function MovieFormModal({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let finalValue = type === "checkbox" ? checked : value;
-
-    // Không cho phép chọn ngày khởi chiếu ở quá khứ
-    if (name === "ngayKhoiChieu" && value) {
-      if (dayjs(value).isBefore(dayjs(), "day")) {
+    if (name === "ngayKhoiChieu") {
+      let finalValue = value;
+      if (value && dayjs(value).isBefore(dayjs(), "day")) {
         finalValue = minDateStr;
       }
+      const isStrictFuture = finalValue ? dayjs(finalValue).startOf("day").isAfter(dayjs().startOf("day")) : false;
+      setFormData((prev) => ({
+        ...prev,
+        ngayKhoiChieu: finalValue,
+        dangChieu: !isStrictFuture,
+        sapChieu: isStrictFuture,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
     }
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: finalValue,
-    }));
   };
 
   const handleImageChange = (e) => {
@@ -101,12 +121,89 @@ export default function MovieFormModal({
     }
   };
 
+  const todayStr = dayjs().format("YYYY-MM-DD");
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmitSuccess) {
-      onSubmitSuccess(formData, isEditMode);
+
+    if (!formData.tenPhim || !formData.tenPhim.trim()) {
+      alert("Vui lòng nhập tên phim!");
+      return;
     }
-    onClose();
+
+    // 1. Kiểm tra trùng tên phim (Chỉ trùng chính xác 100% tên mới thông báo lỗi)
+    if (existingMovies && existingMovies.length > 0) {
+      const inputName = formData.tenPhim.trim().toLowerCase();
+      const duplicate = existingMovies.some((m) => {
+        if (isEditMode && initialData?.maPhim && String(m.maPhim) === String(initialData.maPhim)) {
+          return false;
+        }
+        return m.tenPhim?.trim().toLowerCase() === inputName;
+      });
+
+      if (duplicate) {
+        alert(`Tên phim "${formData.tenPhim.trim()}" đã tồn tại trong hệ thống! Vui lòng nhập tên phim khác.`);
+        return;
+      }
+    }
+
+    if (!formData.ngayKhoiChieu) {
+      alert("Vui lòng chọn ngày khởi chiếu cho phim!");
+      return;
+    }
+
+    // 2. Kiểm tra hình ảnh khi thêm phim mới
+    if (!isEditMode && !formData.fileImage && !formData.hinhAnh) {
+      alert("Vui lòng tải lên hình ảnh poster phim hoặc nhập đường dẫn URL hình ảnh!");
+      return;
+    }
+
+    // 3. Kiểm tra ngày khởi chiếu
+    if (formData.ngayKhoiChieu) {
+      const selectedDate = dayjs(formData.ngayKhoiChieu).startOf("day");
+      const today = dayjs().startOf("day");
+
+      if (!isEditMode) {
+        // Trường hợp Thêm phim mới: Không cho chọn ngày quá khứ
+        if (selectedDate.isBefore(today)) {
+          alert("Khi thêm phim mới, không được chọn ngày khởi chiếu trong quá khứ!");
+          return;
+        }
+      } else if (initialData) {
+        // Trường hợp Chỉnh sửa: Nếu đổi sang ngày chiếu MỚI trong quá khứ -> Không cho phép
+        let initialFormattedStr = "";
+        if (initialData.ngayKhoiChieu) {
+          const dateVal = String(initialData.ngayKhoiChieu);
+          if (dateVal.includes("/")) {
+            const parts = dateVal.split(" ")[0].split("/");
+            if (parts.length === 3) {
+              initialFormattedStr = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+            }
+          } else {
+            const parsed = dayjs(dateVal);
+            if (parsed.isValid()) {
+              initialFormattedStr = parsed.format("YYYY-MM-DD");
+            }
+          }
+        }
+
+        const isDateChanged = formData.ngayKhoiChieu !== initialFormattedStr;
+        if (isDateChanged && selectedDate.isBefore(today)) {
+          alert("Khi thay đổi ngày khởi chiếu, không được chọn ngày trong quá khứ!");
+          return;
+        }
+      }
+    }
+
+    try {
+      if (onSubmitSuccess) {
+        onSubmitSuccess(formData, isEditMode);
+      }
+    } catch (err) {
+      console.error("Lỗi khi gửi form phim:", err);
+    } finally {
+      onClose();
+    }
   };
 
   return (
@@ -226,30 +323,41 @@ export default function MovieFormModal({
 
               {/* Status Switches (Đang chiếu, Sắp chiếu, Hot) */}
               <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-3">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Trạng Thái & Phân Loại
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Trạng Thái & Phân Loại
+                  </div>
+                  <span className="text-[10px] text-blue-400 font-medium bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">
+                    🔒 Tự động tính theo ngày khởi chiếu & lịch chiếu
+                  </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  {/* Đang chiếu */}
-                  <label className="flex items-center space-x-2 cursor-pointer select-none">
+                  {/* Đang chiếu (Tự động, không cho chỉnh sửa bằng tay) */}
+                  <label
+                    className="flex items-center space-x-2 cursor-not-allowed opacity-80 select-none"
+                    title="Tự động bật khi phim có suất chiếu hoặc đến ngày khởi chiếu"
+                  >
                     <input
                       type="checkbox"
                       name="dangChieu"
+                      disabled
                       checked={formData.dangChieu}
-                      onChange={handleChange}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-not-allowed"
                     />
                     <span className="text-sm font-medium text-slate-300">Đang Chiếu</span>
                   </label>
 
-                  {/* Sắp chiếu */}
-                  <label className="flex items-center space-x-2 cursor-pointer select-none">
+                  {/* Sắp chiếu (Tự động, không cho chỉnh sửa bằng tay) */}
+                  <label
+                    className="flex items-center space-x-2 cursor-not-allowed opacity-80 select-none"
+                    title="Tự động bật khi Ngày khởi chiếu ở tương lai"
+                  >
                     <input
                       type="checkbox"
                       name="sapChieu"
+                      disabled
                       checked={formData.sapChieu}
-                      onChange={handleChange}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 cursor-not-allowed"
                     />
                     <span className="text-sm font-medium text-slate-300">Sắp Chiếu</span>
                   </label>
