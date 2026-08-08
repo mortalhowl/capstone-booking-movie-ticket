@@ -108,7 +108,11 @@ export const actCreateShowtime = createAsyncThunk(
       const response = await api.post("QuanLyDatVe/TaoLichChieu", showtimeData);
       return response.data.content;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.content || "Tạo lịch chiếu thất bại");
+      const rawError = error.response?.data;
+      const errorMsg =
+        (typeof rawError === "string" ? rawError : rawError?.content || rawError?.message) ||
+        "Tạo lịch chiếu thất bại. Vui lòng kiểm tra lại thông tin.";
+      return rejectWithValue(errorMsg);
     }
   }
 );
@@ -184,6 +188,21 @@ const adminMovieSlice = createSlice({
         state.successMessage = "Xóa phim thành công!";
       })
       .addCase(actDeleteMovie.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // --- Xử lý Tạo lịch chiếu ---
+    builder
+      .addCase(actCreateShowtime.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(actCreateShowtime.fulfilled, (state) => {
+        state.loading = false;
+        state.successMessage = "Tạo lịch chiếu phim thành công!";
+      })
+      .addCase(actCreateShowtime.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

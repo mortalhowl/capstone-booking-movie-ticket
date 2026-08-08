@@ -5,7 +5,7 @@ import axios from "axios";
  * Kết nối đến API CyberSoft Movie
  */
 const api = axios.create({
-  baseURL: import.meta.env?.VITE_BASE_URL || "/api/",
+  baseURL: import.meta.env?.VITE_BASE_URL || "https://movienew.cybersoft.edu.vn/api/",
   timeout: 30000,
 });
 
